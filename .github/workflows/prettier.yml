@@ -1,0 +1,51 @@
+name: Format code using Prettier
+
+# This action works with pull requests and pushes
+on:
+  pull_request:
+  push:
+    paths:
+      - "**.css"
+      - "**.html"
+      - "**.js"
+      - "**.json"
+      - "**.md"
+      - "**.svelte"
+      - "**.scss"
+      - "**.{yml, yaml}"
+      - ".github/workflows/prettier.yml"
+  workflow_dispatch:
+
+jobs:
+  prettier:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          # Make sure the actual branch is checked out when running on pull requests
+          ref: ${{ github.head_ref }}
+      
+      - name: setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          # cache: 'npm'
+      
+      - name: install svelte prettier plugin
+        run: npm i prettier-plugin-svelte prettier
+
+      - name: Prettify code
+        uses: actionsx/prettier@v2
+        with:
+          # prettier CLI arguments.
+          args: --write . --plugin-search-dir=.
+
+      - name: Git Auto Commit
+        if: github.ref != 'refs/heads/master'
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "🤖 Automated Code Formatting"
+          commit_author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+          commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com
