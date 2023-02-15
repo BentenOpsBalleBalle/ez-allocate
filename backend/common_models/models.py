@@ -5,11 +5,12 @@ from django.utils.translation import gettext_lazy as _
 
 # TODO: create computed fields
 # TODO: add many to many relationships
+# TODO: define max/min values for integer field
 
 
 class AllottmentStatus(models.TextChoices):
     NONE = "NONE"
-    PARTIAL = "PART"
+    PARTIAL = "PART", _('Partial')
     FULL = "FULL"
 
 
@@ -20,7 +21,7 @@ class Subject(models.Model):
         ELECTIVE = "ELEC"
 
     name = models.CharField(max_length=128)
-    course_code = models.SlugField(max_length=10)
+    course_code = models.SlugField(max_length=10, unique=True)
     credits = models.SmallIntegerField()  # maybe add max length?
     course_type = models.CharField(max_length=4, choices=CourseType.choices)
     programme = models.CharField(max_length=20)
