@@ -9,7 +9,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
 app.get("/test", (req, res) => {
-  res.send(subjects);
+    res.send(subjects);
 });
 
 export default app;
