@@ -1,5 +1,11 @@
+import LoginPage from "./Pages/LoginPage";
+
 const App = () => {
-	return <div className="bg-red-100">App</div>;
+  return (
+    <div className="w-screen h-screen">
+      <LoginPage />
+    </div>
+  );
 };
 
 export default App;
