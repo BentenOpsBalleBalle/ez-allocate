@@ -7,6 +7,7 @@ from django.utils.translation import gettext_lazy as _
 
 # TODO: test these out aka write unit tests maybe
 # TODO: define max/min values for integer field
+# TODO: *_status should be computed values
 
 
 class AllotmentStatus(models.TextChoices):
@@ -66,15 +67,15 @@ class Subject(models.Model):
 
     @property
     def allotted_lecture_hours(self):
-        return self.__allotted_hours_computed["lecture"]
+        return self.__allotted_hours_computed["lecture"] or 0
 
     @property
     def allotted_tutorial_hours(self):
-        return self.__allotted_hours_computed["tutorial"]
+        return self.__allotted_hours_computed["tutorial"] or 0
 
     @property
     def allotted_practical_hours(self):
-        return self.__allotted_hours_computed["practical"]
+        return self.__allotted_hours_computed["practical"] or 0
 
 
 class Teacher(models.Model):
@@ -100,7 +101,7 @@ class Teacher(models.Model):
     def current_load(self):
         return self.allotment_set.aggregate(load=models.Sum('allotted_lecture_hours') +
                                             models.Sum('allotted_tutorial_hours') +
-                                            models.Sum('allotted_practical_hours'))
+                                            models.Sum('allotted_practical_hours'))['load'] or 0
 
 
 class Choices(models.Model):
