@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import SubjectCard from "./SubjectCard";
+import SearchBar from "./SearchBar";
 
 const getSubjects = async () => {
   return await axios.get("http://localhost:3000/test");
@@ -11,27 +12,34 @@ function SubjectList() {
 
   return (
     <div>
-      <div className="flex gap-x-4 pl-2 mt-[20px] mb-[10px] ">
-        <div className="title text-[35px] ml-[30px] mr-[15px] font-bold">
-          S U B J E C T S
+      <div className="flex justify-between items-end mb-[15px] mt-[10px]  ">
+        <div className="flex gap-x-4">
+          <div className="title text-[35px] ml-[30px] mr-[15px] font-bold">
+            S U B J E C T S
+          </div>
+          <div className="flex gap-x-2 items-end">
+            <div className="w-5 h-5 bg-red-400 rounded-sm" />
+            <div>No teachers available</div>
+          </div>
+          <div className="flex gap-x-2 items-end">
+            <div className="w-5 h-5 bg-green-400 rounded-sm" />
+            <div>Subject Alloted</div>
+          </div>
+          <div className="flex gap-x-2 items-end">
+            <div className="w-5 h-5 bg-yellow-400 rounded-sm" />
+            <div>Subject to be alloted</div>
+          </div>
         </div>
-        <div className="flex gap-x-2 items-center">
-          <div className="w-5 h-5 bg-red-400 rounded-sm" />
-          <div>No teachers available</div>
-        </div>
-        <div className="flex gap-x-2 items-center">
-          <div class="w-5 h-5 bg-green-400 rounded-sm" />
-          <div>Subject Alloted</div>
-        </div>
-        <div className="flex gap-x-2 items-center">
-          <div className="w-5 h-5 bg-yellow-400 rounded-sm" />
-          <div>Subject to be alloted</div>
+        <SearchBar />
+        <div className="mr-10 border border-blue-300 bg-blue-700 text-white font-mono text-xl font-bold rounded-lg px-3 py-1 cursor-pointer">
+          Teachers
         </div>
       </div>
+
       {subjectsQuery.isLoading ? (
         <p>Loading...</p>
       ) : (
-        <div className="flex">
+        <div className="flex mt-6">
           {subjectsQuery.data.data.map((subject) => (
             <SubjectCard
               key={subject.id}
