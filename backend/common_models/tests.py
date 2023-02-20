@@ -1,6 +1,9 @@
+from django.core.exceptions import ValidationError
 from django.test import TestCase
+from parametrize import parametrize
 
 from .models import Allotment, Subject, Teacher
+from .utils.validators import teacher_model_validate_ltp_preference
 
 
 # TODO: create tests for (future) computed *_status'
@@ -91,3 +94,24 @@ class AllotmentModelRelationShipTest(TestCase):
                                                                                   'allotted_practical_hours': 5})
 
         self.assertEqual(self.teacher1.current_load, 4 + 5 + 1 + 4 + 5)
+
+
+class LTPPreferenceValidatorTest(TestCase):
+    @parametrize('preference,exception_expected', [
+        ("LTP", 0),
+        ("ltp", 0),
+        ("tlp", 0),
+        ("plt", 0),
+        ("tttttt", 1),  # len test
+        ("L", 1),  # len test
+        ("L5P", 1),  # wrong character test
+        ("LTT", 1)  # invalid character test
+    ])
+    def test_ltp_preference_order_validator(self, preference, exception_expected):
+        if exception_expected:
+            self.assertRaises(ValidationError, teacher_model_validate_ltp_preference, preference)
+        else:
+            try:
+                teacher_model_validate_ltp_preference(preference)
+            except ValidationError:
+                self.fail(f"not expected to fail validation for '{preference}'")

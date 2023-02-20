@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
+from .utils.validators import teacher_model_validate_ltp_preference
 
 # Create your models here.
 
@@ -79,16 +80,11 @@ class Subject(models.Model):
 
 
 class Teacher(models.Model):
-    class PreferredMode(models.TextChoices):
-        LECTURE = "LEC", _('Lecture')
-        TUTORIAL = "TUT", _('Tutorial')
-        PRACTICAL = "LAB", _("Practical/Lab")
-        ANY = "ANY", _("Any")
 
     name = models.CharField(max_length=128)
 
     preferred_mode = models.CharField(
-        max_length=3, choices=PreferredMode.choices, default=PreferredMode.ANY)
+        max_length=3, validators=[teacher_model_validate_ltp_preference], default="LTP")
     assigned_status = models.CharField(
         max_length=4, choices=AllotmentStatus.choices, default=AllotmentStatus.NONE)
 
@@ -102,6 +98,10 @@ class Teacher(models.Model):
         return self.allotment_set.aggregate(load=models.Sum('allotted_lecture_hours') +
                                             models.Sum('allotted_tutorial_hours') +
                                             models.Sum('allotted_practical_hours'))['load'] or 0
+
+    def save(self, *args, **kwargs):
+        self.preferred_mode = self.preferred_mode.upper()
+        super().save(*args, **kwargs)
 
 
 class Choices(models.Model):
