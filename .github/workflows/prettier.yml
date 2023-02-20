@@ -8,6 +8,7 @@ on:
       - "**.css"
       - "**.html"
       - "**.js"
+      - "**.jsx"
       - "**.json"
       - "**.md"
       - "**.svelte"
@@ -32,15 +33,12 @@ jobs:
         with:
           node-version: 16
           # cache: 'npm'
-      
-      - name: install svelte prettier plugin
-        run: npm i prettier-plugin-svelte prettier
 
       - name: Prettify code
         uses: actionsx/prettier@v2
         with:
           # prettier CLI arguments.
-          args: --write . --plugin-search-dir=.
+          args: --write .
 
       - name: Git Auto Commit
         if: github.ref != 'refs/heads/master'

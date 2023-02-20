@@ -1,14 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
-import SubjectCard from "./SubjectCard";
-import SearchBar from "./SearchBar";
+import Client from "../helpers/Client";
+const client = new Client();
 
 const getSubjects = async () => {
-  return await axios.get("http://localhost:3000/test");
+	return await client.createUrl({
+		url: "http://localhost:3000/test",
+		method: "GET",
+	});
 };
-
 function SubjectList() {
-  const subjectsQuery = useQuery(["subjects"], getSubjects);
+	const subjectsQuery = useQuery(["subjects"], getSubjects);
+
+	if (subjectsQuery.isError) {
+		return <p>Error: {subjectsQuery.error.message}</p>;
+	}
 
   return (
     <div>
