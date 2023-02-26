@@ -18,32 +18,30 @@ app.use(cors());
 
 app.use("/auth", userRouter);
 app.use("/protected", verify, (req, res) => {
-	res.send("Protected");
+    res.send("Protected");
 });
-app.get("/test", verify, (req, res) => {
-	res.send(subjects);
+app.get("/test", (req, res) => {
+    const { page, limit } = req.query;
+    const endIndex = +page * +limit;
+    const startIndex = endIndex - +limit;
+
+    console.log(endIndex, startIndex);
+    res.send(subjects.slice(startIndex, endIndex));
 });
 
 function verify(req, res, next) {
-	let token = req.headers["authorization"].split(" ")[1];
-	console.log(token);
-	if (!token || token === "null") {
-		return res.status(403).send({ auth: false, message: "No token provided." });
-	}
-	JWT.verify(
-		token,
-		process.env.PUBLIC_KEY,
-		{ algorithms: ["RS256"] },
-		(err, decoded) => {
-			if (err) {
-				return res
-					.status(500)
-					.send({ auth: false, message: "Failed to authenticate token." });
-			}
-			console.log(decoded);
-			next();
-		}
-	);
+    let token = req.headers["authorization"].split(" ")[1];
+    console.log(token);
+    if (!token || token === "null") {
+        return res.status(403).send({ auth: false, message: "No token provided." });
+    }
+    JWT.verify(token, process.env.PUBLIC_KEY, { algorithms: ["RS256"] }, (err, decoded) => {
+        if (err) {
+            return res.status(500).send({ auth: false, message: "Failed to authenticate token." });
+        }
+        console.log(decoded);
+        next();
+    });
 }
 
 export default app;
