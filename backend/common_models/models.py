@@ -9,6 +9,7 @@ from .utils.validators import teacher_model_validate_ltp_preference
 # TODO: test these out aka write unit tests maybe
 # TODO: define max/min values for integer field
 # TODO: *_status should be computed values
+# TODO: add multi field validation https://stackoverflow.com/a/43168682
 
 
 class AllotmentStatus(models.TextChoices):
