@@ -1,25 +1,25 @@
 {
-  "name": "auth",
-  "version": "1.0.0",
-  "description": "",
-  "main": "server.js",
-  "type": "module",
-  "scripts": {
-    "auth": "nodemon ./src/server.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "cors": "^2.8.5",
-    "dotenv": "^16.0.3",
-    "express": "^4.18.2",
-    "express-jwt": "^8.4.1",
-    "express-validator": "^6.14.3",
-    "jsonwebtoken": "^9.0.0",
-    "mongoose": "^6.9.2"
-  },
-  "devDependencies": {
-    "nodemon": "^2.0.20"
-  }
+    "name": "auth",
+    "version": "1.0.0",
+    "description": "",
+    "main": "server.js",
+    "type": "module",
+    "scripts": {
+        "auth": "nodemon ./src/server.js"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "cors": "^2.8.5",
+        "dotenv": "^16.0.3",
+        "express": "^4.18.2",
+        "express-jwt": "^8.4.1",
+        "express-validator": "^6.14.3",
+        "jsonwebtoken": "^9.0.0",
+        "mongoose": "^6.9.2"
+    },
+    "devDependencies": {
+        "nodemon": "^2.0.20"
+    }
 }

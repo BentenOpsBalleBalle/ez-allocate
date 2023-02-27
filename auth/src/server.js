@@ -4,11 +4,11 @@ import http from "http";
 import { mongoConnect } from "./services/mongo.js";
 const server = http.createServer(app);
 const startServer = async () => {
-	await mongoConnect();
+    await mongoConnect();
 
-	server.listen(3000, () => {
-		console.log("Listening on port 3000");
-	});
+    server.listen(3000, () => {
+        console.log("Listening on port 3000");
+    });
 };
 
 startServer();
