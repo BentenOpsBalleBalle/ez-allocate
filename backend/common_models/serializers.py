@@ -23,9 +23,16 @@ class _ExtraFieldModelSerializer(serializers.ModelSerializer):
 class SubjectSerializer(_ExtraFieldModelSerializer):
     class Meta:
         model = Subject
-        fields = "__all__"
+        exclude = ["_allotment_status"]
         extra_fields = ["total_lecture_hours",  "total_tutorial_hours", "total_practical_hours",
-                        "allotted_lecture_hours", "allotted_tutorial_hours", "allotted_practical_hours"]
+                        "allotted_lecture_hours", "allotted_tutorial_hours", "allotted_practical_hours", "allotment_status"]
+
+
+class SubjectListSerializer(_ExtraFieldModelSerializer):
+    class Meta:
+        model = Subject
+        fields = ["id", "name", "course_code", "programme", "credits"]
+        extra_fields = ["allotment_status"]
 
 
 class TeacherSerializer(_ExtraFieldModelSerializer):
