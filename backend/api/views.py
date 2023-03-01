@@ -19,11 +19,6 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
         return response
 
 
-class SubjectsListView(generics.ListAPIView):
-    queryset = Subject.objects.all()
-    serializer_class = serializers.SubjectSerializer
-
-
-class TeacherListView(generics.ListAPIView):
+class TeacherViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Teacher.objects.all()
     serializer_class = serializers.TeacherSerializer

@@ -38,5 +38,5 @@ class SubjectListSerializer(_ExtraFieldModelSerializer):
 class TeacherSerializer(_ExtraFieldModelSerializer):
     class Meta:
         model = Teacher
-        fields = "__all__"
-        extra_fields = ['current_load', 'allotment_set']
+        exclude = ["_assigned_status"]
+        extra_fields = ['current_load', 'allotment_set', 'assigned_status']
