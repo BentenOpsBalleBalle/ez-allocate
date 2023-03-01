@@ -9,6 +9,7 @@ from .utils.validators import teacher_model_validate_ltp_preference
 # TODO: test these out aka write unit tests maybe
 # TODO: define max/min values for integer field
 # TODO: add multi field validation https://stackoverflow.com/a/43168682
+# TODO: create Subjects.programme a list of choices
 
 
 # CONSTANTS

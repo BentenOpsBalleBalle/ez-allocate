@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Subject, Teacher
+from .models import Choices, Subject, Teacher
 
 # TODO: add unit tests to make sure all properties are returned in the response
 
@@ -38,5 +38,26 @@ class SubjectListSerializer(_ExtraFieldModelSerializer):
 class TeacherSerializer(_ExtraFieldModelSerializer):
     class Meta:
         model = Teacher
-        exclude = ["_assigned_status"]
-        extra_fields = ['current_load', 'allotment_set', 'assigned_status']
+        exclude = ["_assigned_status", "subject_choices"]
+        extra_fields = ['current_load', 'assigned_status']
+
+
+class ChoiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Choices
+        exclude = ["id"]
+
+
+class SubjectChoicesSetSerializer(ChoiceSerializer):
+    teacher = TeacherSerializer(read_only=True)
+
+    class Meta(ChoiceSerializer.Meta):
+        exclude = ChoiceSerializer.Meta.exclude + ["subject"]
+
+
+class TeacherChoicesSetSerializer(ChoiceSerializer):
+    subject = SubjectListSerializer(
+        read_only=True)
+
+    class Meta(ChoiceSerializer.Meta):
+        exclude = ChoiceSerializer.Meta.exclude + ["teacher"]
