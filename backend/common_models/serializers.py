@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Choices, Subject, Teacher
+from .models import Allotment, Choices, Subject, Teacher
 
 # TODO: add unit tests to make sure all properties are returned in the response
 
@@ -61,3 +61,24 @@ class TeacherChoicesSetSerializer(ChoiceSerializer):
 
     class Meta(ChoiceSerializer.Meta):
         exclude = ChoiceSerializer.Meta.exclude + ["teacher"]
+
+
+class AllotmentSerializer(serializers.ModelSerializer):
+    # TODO: add validators for allotted hours
+    class Meta:
+        model = Allotment
+        exclude = ["id"]
+
+
+class SubjectAllotmentSetSerializer(AllotmentSerializer):
+    teacher = TeacherSerializer(read_only=True)
+
+    class Meta(AllotmentSerializer.Meta):
+        exclude = AllotmentSerializer.Meta.exclude + ["subject"]
+
+
+class TeacherAllotmentSetSerializer(AllotmentSerializer):
+    subject = SubjectListSerializer(read_only=True)
+
+    class Meta(AllotmentSerializer.Meta):
+        exclude = AllotmentSerializer.Meta.exclude + ["teacher"]

@@ -5,7 +5,6 @@ from parametrize import parametrize
 from .models import Allotment, AllotmentStatus, Subject, Teacher
 from .utils.validators import teacher_model_validate_ltp_preference
 
-# TODO: create tests for (future) computed *_status'
 # Create your tests here.
 
 
