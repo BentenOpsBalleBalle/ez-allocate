@@ -8,13 +8,35 @@ from .utils.validators import teacher_model_validate_ltp_preference
 
 # TODO: test these out aka write unit tests maybe
 # TODO: define max/min values for integer field
-# TODO: *_status should be computed values
+# TODO: add multi field validation https://stackoverflow.com/a/43168682
+# TODO: create Subjects.programme a list of choices
+
+
+# CONSTANTS
+MAXIMUM_TEACHER_WORKLOAD_hrs = 14
 
 
 class AllotmentStatus(models.TextChoices):
     NONE = "NONE"
     PARTIAL = "PART", _('Partial')
     FULL = "FULL"
+
+    @classmethod
+    def compute_partial_or_full(cls, current_value: int, maximum_value: int):
+        """
+        Given the current value of a field, and the maximum it can reach,
+        This function outputs:
+            - None
+            - Partial
+            - Full
+        as a form of a computed value
+        """
+        if current_value == 0:
+            return cls.NONE
+        elif current_value == maximum_value:
+            return cls.FULL
+        else:
+            return cls.PARTIAL
 
 
 # NOTE: can add custom QuerySet as managers to filter computed fields
@@ -40,12 +62,25 @@ class Subject(models.Model):
     number_of_lecture_batches = models.SmallIntegerField()
     number_of_practical_or_tutorial_batches = models.SmallIntegerField()
 
-    allotment_status = models.CharField(
+    _allotment_status = models.CharField(
         max_length=4, choices=AllotmentStatus.choices, default=AllotmentStatus.NONE)
     allotted_teachers = models.ManyToManyField("Teacher", through="Allotment")
 
     def __str__(self):
         return f"{self.course_code}: {self.name}"
+
+    @property
+    def allotment_status(self):
+        current = AllotmentStatus.compute_partial_or_full(
+            current_value=(self.allotted_lecture_hours +
+                           self.allotted_practical_hours+self.allotted_tutorial_hours),
+            maximum_value=(self.total_lecture_hours +
+                           self.total_practical_hours + self.allotted_tutorial_hours)
+        )
+        if current != self._allotment_status:
+            self._allotment_status = current
+            self.save()
+        return self._allotment_status
 
     @property
     def total_lecture_hours(self):
@@ -85,7 +120,7 @@ class Teacher(models.Model):
 
     preferred_mode = models.CharField(
         max_length=3, validators=[teacher_model_validate_ltp_preference], default="LTP")
-    assigned_status = models.CharField(
+    _assigned_status = models.CharField(
         max_length=4, choices=AllotmentStatus.choices, default=AllotmentStatus.NONE)
 
     subject_choices = models.ManyToManyField(Subject, through="Choices")
@@ -93,11 +128,22 @@ class Teacher(models.Model):
     def __str__(self):
         return self.name
 
-    @property
+    @cached_property
     def current_load(self):
         return self.allotment_set.aggregate(load=models.Sum('allotted_lecture_hours') +
                                             models.Sum('allotted_tutorial_hours') +
                                             models.Sum('allotted_practical_hours'))['load'] or 0
+
+    @property
+    def assigned_status(self):
+        current = AllotmentStatus.compute_partial_or_full(
+            current_value=self.current_load,
+            maximum_value=MAXIMUM_TEACHER_WORKLOAD_hrs
+        )
+        if current != self._assigned_status:
+            self._assigned_status = current
+            self.save()
+        return self._assigned_status
 
     def save(self, *args, **kwargs):
         self.preferred_mode = self.preferred_mode.upper()
