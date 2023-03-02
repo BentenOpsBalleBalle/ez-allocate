@@ -6,6 +6,8 @@ import JWT from "jsonwebtoken";
 
 import { subjects } from "../temporary/subjects.js";
 import userRouter from "./routes/user.route.js";
+import { teachers } from "../temporary/teachers.js";
+import { teacher_allotment } from "../temporary/teacher_allotment.js";
 dotenv.config();
 const app = express();
 
@@ -25,8 +27,20 @@ app.get("/test", (req, res) => {
     const endIndex = +page * +limit;
     const startIndex = endIndex - +limit;
 
-    console.log(endIndex, startIndex);
+    // console.log(endIndex, startIndex);
     res.send(subjects.slice(startIndex, endIndex));
+});
+
+app.get("/teachers", (req, res) => {
+    const { page, limit } = req.query;
+    const endIndex = +page * +limit;
+    const startIndex = endIndex - +limit;
+    res.send(teachers.slice(startIndex, endIndex));
+});
+app.get("/teachers/:id", (req, res) => {
+    const { id } = req.params;
+    const teacher = teachers.find((teacher) => teacher.id === id);
+    res.send(teacher);
 });
 
 function verify(req, res, next) {
