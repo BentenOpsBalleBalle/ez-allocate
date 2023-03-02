@@ -39,7 +39,7 @@ app.get("/teachers", (req, res) => {
 });
 app.get("/teachers/:id", (req, res) => {
     const { id } = req.params;
-    const teacher = teachers.find((teacher) => teacher.id === id);
+    const teacher = teacher_allotment.find((teacher) => teacher.id === id);
     res.send(teacher);
 });
 
