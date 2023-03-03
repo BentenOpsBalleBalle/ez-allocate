@@ -54,3 +54,5 @@ jobs:
         with:
           image_name: ${{ env.REPO_LC }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          context: backend
+          dockerfile: Dockerfile.dev
