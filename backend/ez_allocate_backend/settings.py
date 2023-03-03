@@ -35,6 +35,20 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5173"
 ]
 
+# REST FRAMEWORK SETTINGS
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+# DOCS: SPECTACULAR SETTINGS
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'ez-allocate API docs',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'ENUM_NAME_OVERRIDES': {
+        'AssignedStatusEnum': 'common_models.models.AllotmentStatus',
+        'AllotmentStatusEnum': 'common_models.models.AllotmentStatus',
+    }
+}
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -42,6 +56,7 @@ INSTALLED_APPS = [
     'api',
     'rest_framework',
     'corsheaders',
+    'drf_spectacular',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

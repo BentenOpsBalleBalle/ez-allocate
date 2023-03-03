@@ -1,6 +1,7 @@
 from common_models import serializers
 from common_models.models import Allotment, Choices, Subject, Teacher
-from rest_framework import generics, viewsets
+from drf_spectacular.utils import extend_schema
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -11,6 +12,7 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Subject.objects.all()
     serializer_class = serializers.SubjectSerializer
 
+    @extend_schema(responses={200: serializers.SubjectListSerializer})
     def list(self, request, *args, **kwargs):
         # TODO: add pagination
         old = self.serializer_class
@@ -21,6 +23,7 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
         self.serializer_class = old
         return response
 
+    @extend_schema(responses={200: serializers.SubjectChoicesSetSerializer})
     @action(detail=True)
     def choices(self, request, pk=None):
         """
@@ -32,6 +35,7 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
             subject.choices_set.all().order_by("choice_number"), many=True)
         return Response(serializer.data)
 
+    @extend_schema(responses={200: serializers.SubjectAllotmentSetSerializer})
     @action(detail=True)
     def allotments(self, request, pk=None):
         """
@@ -48,6 +52,7 @@ class TeacherViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Teacher.objects.all()
     serializer_class = serializers.TeacherSerializer
 
+    @extend_schema(responses={200: serializers.TeacherChoicesSetSerializer})
     @action(detail=True)
     def choices(self, request, pk=None):
         """
@@ -59,6 +64,7 @@ class TeacherViewSet(viewsets.ReadOnlyModelViewSet):
             Choices.objects.filter(teacher=teacher).order_by("choice_number"), many=True)
         return Response(serializer.data)
 
+    @extend_schema(responses={200: serializers.TeacherAllotmentSetSerializer})
     @action(detail=True)
     def allotments(self, request, pk=None):
         """

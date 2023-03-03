@@ -70,7 +70,7 @@ class Subject(models.Model):
         return f"{self.course_code}: {self.name}"
 
     @property
-    def allotment_status(self):
+    def allotment_status(self) -> AllotmentStatus:
         current = AllotmentStatus.compute_partial_or_full(
             current_value=(self.allotted_lecture_hours +
                            self.allotted_practical_hours+self.allotted_tutorial_hours),
@@ -83,15 +83,15 @@ class Subject(models.Model):
         return self._allotment_status
 
     @property
-    def total_lecture_hours(self):
+    def total_lecture_hours(self) -> int:
         return self.original_lecture_hours * self.number_of_lecture_batches
 
     @property
-    def total_tutorial_hours(self):
+    def total_tutorial_hours(self) -> int:
         return self.original_tutorial_hours * self.number_of_practical_or_tutorial_batches
 
     @property
-    def total_practical_hours(self):
+    def total_practical_hours(self) -> int:
         return self.original_practical_hours * self.number_of_practical_or_tutorial_batches
 
     @cached_property
@@ -102,15 +102,15 @@ class Subject(models.Model):
                                             practical=models.Sum('allotted_practical_hours'))
 
     @property
-    def allotted_lecture_hours(self):
+    def allotted_lecture_hours(self) -> int:
         return self.__allotted_hours_computed["lecture"] or 0
 
     @property
-    def allotted_tutorial_hours(self):
+    def allotted_tutorial_hours(self) -> int:
         return self.__allotted_hours_computed["tutorial"] or 0
 
     @property
-    def allotted_practical_hours(self):
+    def allotted_practical_hours(self) -> int:
         return self.__allotted_hours_computed["practical"] or 0
 
 
@@ -129,13 +129,13 @@ class Teacher(models.Model):
         return self.name
 
     @cached_property
-    def current_load(self):
+    def current_load(self) -> int:
         return self.allotment_set.aggregate(load=models.Sum('allotted_lecture_hours') +
                                             models.Sum('allotted_tutorial_hours') +
                                             models.Sum('allotted_practical_hours'))['load'] or 0
 
     @property
-    def assigned_status(self):
+    def assigned_status(self) -> AllotmentStatus:
         current = AllotmentStatus.compute_partial_or_full(
             current_value=self.current_load,
             maximum_value=MAXIMUM_TEACHER_WORKLOAD_hrs
