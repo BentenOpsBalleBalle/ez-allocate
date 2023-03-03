@@ -2,3 +2,5 @@ Django
 django-cors-headers
 djangorestframework
 parametrize
+pyyaml
+uritemplate
