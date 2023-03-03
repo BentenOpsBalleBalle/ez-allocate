@@ -1,0 +1,10 @@
+version: '3.9'
+
+services:
+  backend:
+    image: ezallocate-backend
+    build:
+      context: backend
+      dockerfile: ./Dockerfile.dev
+    ports:
+      - 8000:8000
