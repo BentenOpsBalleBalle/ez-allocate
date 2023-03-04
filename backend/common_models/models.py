@@ -1,3 +1,5 @@
+from typing import Tuple
+
 from django.db import models
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
@@ -20,21 +22,46 @@ class AllotmentStatus(models.TextChoices):
     NONE = "NONE"
     PARTIAL = "PART", _('Partial')
     FULL = "FULL"
+    ERROR = "ERRR", _('Error')
 
     @classmethod
-    def compute_partial_or_full(cls, current_value: int, maximum_value: int):
+    def compute_partial_or_full(cls, current_value: Tuple[int, ...], maximum_value: Tuple[int, ...]):
         """
         Given the current value of a field, and the maximum it can reach,
         This function outputs:
             - None
             - Partial
             - Full
+            - Error
         as a form of a computed value
+
+        The function does that by maintaining the state of difference between current value and the maximum allowed
+        value.
+        - If the current values are all 0, we track that and store 0 then at the end if all the values have been 0, we
+          know that nothing has been allotted yet
+        - If the current value matches its maximum, then we will have an empty list at the end
+        - while doing that, if somehow the current value is greater than the maximum allowed, we set the state to an
+          error and hope that someone will take a look at it
+        - otherwise, partial state
         """
-        if current_value == 0:
-            return cls.NONE
-        elif current_value == maximum_value:
+        assert len(current_value) == len(maximum_value), "Tuple pairs are of different length\n" + \
+                                                         f"{len(current_value)} != {len(maximum_value)} "
+        status = []
+        for current, max_ in zip(current_value, maximum_value):
+            if current == 0 and max_ != 0:
+                status.append(0)
+            elif current == max_:
+                pass
+            elif current > max_:
+                return cls.ERROR
+            else:
+                status.append(0.5)
+
+        all_fields_status = sum(status)
+        if len(status) == 0:
             return cls.FULL
+        elif all_fields_status == 0:
+            return cls.NONE
         else:
             return cls.PARTIAL
 
@@ -72,10 +99,10 @@ class Subject(models.Model):
     @property
     def allotment_status(self) -> AllotmentStatus:
         current = AllotmentStatus.compute_partial_or_full(
-            current_value=(self.allotted_lecture_hours +
-                           self.allotted_practical_hours+self.allotted_tutorial_hours),
-            maximum_value=(self.total_lecture_hours +
-                           self.total_practical_hours + self.allotted_tutorial_hours)
+            current_value=(self.allotted_lecture_hours,
+                           self.allotted_practical_hours, self.allotted_tutorial_hours),
+            maximum_value=(self.total_lecture_hours,
+                           self.total_practical_hours, self.total_tutorial_hours)
         )
         if current != self._allotment_status:
             self._allotment_status = current
@@ -137,8 +164,8 @@ class Teacher(models.Model):
     @property
     def assigned_status(self) -> AllotmentStatus:
         current = AllotmentStatus.compute_partial_or_full(
-            current_value=self.current_load,
-            maximum_value=MAXIMUM_TEACHER_WORKLOAD_hrs
+            current_value=(self.current_load, ),
+            maximum_value=(MAXIMUM_TEACHER_WORKLOAD_hrs, )
         )
         if current != self._assigned_status:
             self._assigned_status = current

@@ -124,12 +124,17 @@ class ComputedStatusFieldTest(TestCase):
                                original_lecture_hours=3, original_tutorial_hours=1, original_practical_hours=1,
                                number_of_lecture_batches=2, number_of_practical_or_tutorial_batches=6)
 
-        cls.subject2 = Subject(name="subject3", course_code="sub3", credits=4, course_type=Subject.CourseType.ELECTIVE,
-                               original_lecture_hours=2, original_tutorial_hours=0, original_practical_hours=4,
-                               number_of_lecture_batches=3, number_of_practical_or_tutorial_batches=2)
+        cls.subject2 = Subject(name="subject2", course_code="sub2", credits=2, course_type=Subject.CourseType.ELECTIVE,
+                               original_lecture_hours=1, original_tutorial_hours=0, original_practical_hours=2,
+                               number_of_lecture_batches=2, number_of_practical_or_tutorial_batches=6)
+
+        cls.subject3 = Subject(name="subject3", course_code="sub3", credits=4, course_type=Subject.CourseType.ELECTIVE,
+                               original_lecture_hours=2, original_tutorial_hours=1, original_practical_hours=2,
+                               number_of_lecture_batches=1, number_of_practical_or_tutorial_batches=1)
 
         cls.subject1.save()
         cls.subject2.save()
+        cls.subject3.save()
 
         cls.teacher1 = Teacher(name="john")
         cls.teacher2 = Teacher(name="doe")
@@ -145,7 +150,7 @@ class ComputedStatusFieldTest(TestCase):
         self.assertEqual(self.teacher2.assigned_status, AllotmentStatus.NONE)
 
     def test_allotment_and_assigned_status_PARTIAL(self):
-        Allotment.objects.create(subject=self.subject1, teacher=self.teacher1, **{'allotted_lecture_hours': 0,
+        Allotment.objects.create(subject=self.subject1, teacher=self.teacher1, **{'allotted_lecture_hours': 2,
                                                                                   'allotted_tutorial_hours': 4,
                                                                                   'allotted_practical_hours': 5})
         self.assertEqual(self.subject1.allotment_status,
@@ -154,8 +159,15 @@ class ComputedStatusFieldTest(TestCase):
                          AllotmentStatus.PARTIAL)
 
     def test_allotment_and_assigned_status_FULL(self):
-        Allotment.objects.create(subject=self.subject2, teacher=self.teacher2, **{'allotted_lecture_hours': 6,
+        Allotment.objects.create(subject=self.subject2, teacher=self.teacher2, **{'allotted_lecture_hours': 2,
                                                                                   'allotted_tutorial_hours': 0,
-                                                                                  'allotted_practical_hours': 8})
+                                                                                  'allotted_practical_hours': 12})
+
         self.assertEqual(self.subject2.allotment_status, AllotmentStatus.FULL)
         self.assertEqual(self.teacher2.assigned_status, AllotmentStatus.FULL)
+
+    def test_allotment_and_assigned_status_ERROR(self):
+        Allotment.objects.create(subject=self.subject3, teacher=self.teacher2, **{'allotted_lecture_hours': 0,
+                                                                                  'allotted_tutorial_hours': 0,
+                                                                                  'allotted_practical_hours': 4})
+        self.assertEqual(self.subject3.allotment_status, AllotmentStatus.ERROR)
