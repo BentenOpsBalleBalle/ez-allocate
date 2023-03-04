@@ -1,10 +1,10 @@
-import login from "../assets/login.jpg";
 import Client from "../helpers/Client";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Pagination } from "../components/common/Pagination";
 import FetchingIndicator from "../components/common/FetchingIndicator";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const client = new Client();
 
@@ -24,6 +24,12 @@ function TeachersPage() {
             keepPreviousData: true,
         }
     );
+
+    async function ok() {
+        const response = await axios.get("http://localhost:8000/api/subjects/");
+        console.log(response.data);
+    }
+    ok();
 
     if (teachersQuery.isError) {
         return <p>Error: {teachersQuery.error.message}</p>;
