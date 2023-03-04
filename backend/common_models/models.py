@@ -102,7 +102,7 @@ class Subject(models.Model):
             current_value=(self.allotted_lecture_hours,
                            self.allotted_practical_hours, self.allotted_tutorial_hours),
             maximum_value=(self.total_lecture_hours,
-                           self.total_practical_hours, self.allotted_tutorial_hours)
+                           self.total_practical_hours, self.total_tutorial_hours)
         )
         if current != self._allotment_status:
             self._allotment_status = current
