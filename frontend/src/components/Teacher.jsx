@@ -13,9 +13,15 @@ const fetchTeacher = async (id) => {
 
 const Teacher = () => {
     const { id } = useParams();
-
     const teacherQuery = useQuery(["teacher", id], () => fetchTeacher(id));
-    console.log(teacherQuery);
+    if (teacherQuery.isError) {
+        return <p>Error: {teacherQuery.error.message}</p>;
+    }
+    if (teacherQuery.isLoading) {
+        return <p>Loading...</p>;
+    }
+    const teacher = teacherQuery.data.data;
+    console.log(teacher);
 
     return (
         <div className="flex w-screen">
