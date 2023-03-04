@@ -1,0 +1,7 @@
+Django
+django-cors-headers
+djangorestframework
+drf-spectacular
+parametrize
+pyyaml
+uritemplate
