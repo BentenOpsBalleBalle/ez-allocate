@@ -27,36 +27,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-# CORS SETTINGS
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:5173",
-    "http://127.0.0.1:5173"
-]
-
-# REST FRAMEWORK SETTINGS
-REST_FRAMEWORK = {
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-}
-# DOCS: SPECTACULAR SETTINGS
-SPECTACULAR_SETTINGS = {
-    'TITLE': 'ez-allocate API docs',
-    'SERVE_INCLUDE_SCHEMA': False,
-    'ENUM_NAME_OVERRIDES': {
-        'AssignedStatusEnum': 'common_models.models.AllotmentStatus',
-        'AllotmentStatusEnum': 'common_models.models.AllotmentStatus',
-    }
-}
 
 # Application definition
 
 INSTALLED_APPS = [
-    'common_models',
-    'api',
-    'rest_framework',
-    'corsheaders',
-    'drf_spectacular',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -66,7 +40,6 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
