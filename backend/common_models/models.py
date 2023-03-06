@@ -165,8 +165,8 @@ class Teacher(models.Model):
     @property
     def assigned_status(self) -> AllotmentStatus:
         current = AllotmentStatus.compute_partial_or_full(
-            current_value=(self.current_load, ),
-            maximum_value=(MAXIMUM_TEACHER_WORKLOAD_hrs, )
+            current_value=(self.current_load,),
+            maximum_value=(MAXIMUM_TEACHER_WORKLOAD_hrs,)
         )
         if current != self._assigned_status:
             self._assigned_status = current
@@ -185,6 +185,10 @@ class Choices(models.Model):
 
     def __str__(self):
         return f"teacher={self.teacher.name}, subject={self.subject}, choice={self.choice_number}"
+
+    @property
+    def manually_added(self) -> bool:
+        return self.choice_number == settings.CUSTOM_SETTINGS["MANUAL_CHOICE_NUMBER"]
 
 
 class Allotment(models.Model):
