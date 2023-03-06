@@ -1,4 +1,8 @@
+from django.conf import settings
+from django.core import validators
+from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
 
 from .models import Allotment, Choices, Subject, Teacher
 
@@ -53,6 +57,29 @@ class SubjectChoicesSetSerializer(ChoiceSerializer):
 
     class Meta(ChoiceSerializer.Meta):
         exclude = ChoiceSerializer.Meta.exclude + ["subject"]
+
+
+@extend_schema_serializer(exclude_fields=('choice_number',))
+class SubjectChoicesPOSTSerializer(ChoiceSerializer):
+    teacher = serializers.PrimaryKeyRelatedField(
+        queryset=Teacher.objects.all())
+    __default_choice_number = settings.CUSTOM_SETTINGS["MANUAL_CHOICE_NUMBER"] or 0
+    choice_number = serializers.IntegerField(default=0,
+                                             validators=[
+                                                 validators.MinValueValidator(
+                                                     __default_choice_number),
+                                                 validators.MaxValueValidator(__default_choice_number)],
+                                             required=False
+                                             )
+
+    class Meta(ChoiceSerializer.Meta):
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Choices.objects.all(),
+                fields=['subject', 'teacher'],
+                message="this teacher has already been added to this subject's choice set"
+            )
+        ]
 
 
 class TeacherChoicesSetSerializer(ChoiceSerializer):

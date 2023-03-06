@@ -1,8 +1,9 @@
 from common_models import serializers
 from common_models.models import Allotment, Choices, Subject, Teacher
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.request import Request
 from rest_framework.response import Response
 
 # Create your views here.
@@ -23,7 +24,7 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
         self.serializer_class = old
         return response
 
-    @extend_schema(responses={200: serializers.SubjectChoicesSetSerializer})
+    @extend_schema(responses={200: serializers.SubjectChoicesSetSerializer(many=True)})
     @action(detail=True)
     def choices(self, request, pk=None):
         """
@@ -34,6 +35,37 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = serializers.SubjectChoicesSetSerializer(
             subject.choices_set.all().order_by("choice_number"), many=True)
         return Response(serializer.data)
+
+    @extend_schema(description="adds a teacher into a subject's choices manually. raises a `400`"
+                               " response if the teacher is already added in the set",
+                   request=None,
+                   methods=["POST"])
+    @extend_schema(description="Deletes a manually added teacher from the choices set", methods=["DELETE"])
+    @extend_schema(parameters=[
+        OpenApiParameter(name='teacher', description='the Teacher\'s id', required=True, type=int, location="path")],
+        responses={200: serializers.SubjectChoicesSetSerializer(many=True)})
+    @action(detail=True, methods=["POST", "DELETE"], url_path=r'choices/modify/(?P<teacher>\w+)')
+    def choices_modify(self, request: Request, pk=None, teacher=None):
+        subject = self.get_object()
+        if request.method == "POST":
+            serializer = serializers.SubjectChoicesPOSTSerializer(
+                data={'teacher': teacher, 'subject': subject.id})
+            serializer.is_valid(raise_exception=True)
+            instance = Choices.objects.create(teacher=serializer.validated_data["teacher"],
+                                              subject=subject,
+                                              choice_number=serializer.validated_data["choice_number"])
+            instance.save()
+            return Response(serializer.data)
+
+        elif request.method == "DELETE":
+            serializer = serializers.SubjectChoicesPOSTSerializer(
+                data={'teacher': teacher})
+            serializer.is_valid(raise_exception=True)
+            teacher = serializer.validated_data["teacher"]
+            instance = Choices.objects.get(teacher=teacher, subject__pk=pk)
+            return Response(serializers.SubjectChoicesSetSerializer(instance).data)
+
+        return self.choices(request, pk=pk)
 
     @extend_schema(responses={200: serializers.SubjectAllotmentSetSerializer})
     @action(detail=True)
