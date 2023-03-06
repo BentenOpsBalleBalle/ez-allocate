@@ -1,5 +1,6 @@
 from typing import Tuple
 
+from django.conf import settings
 from django.db import models
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
@@ -15,7 +16,7 @@ from .utils.validators import teacher_model_validate_ltp_preference
 
 
 # CONSTANTS
-MAXIMUM_TEACHER_WORKLOAD_hrs = 14
+MAXIMUM_TEACHER_WORKLOAD_hrs = settings.CUSTOM_SETTINGS["MAX_TEACHER_WORKLOAD_HOURS"] or 14
 
 
 class AllotmentStatus(models.TextChoices):
