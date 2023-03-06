@@ -50,3 +50,49 @@ class SubjectChoicesTest(APITestCase):
         response = self.client.post(url, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(Choices.objects.count(), 1)
+
+    def test_manually_adding_a_teacher_that_is_already_added_but_not_manually(self):
+        Choices.objects.create(subject=self.subject1,
+                               teacher=self.teacher1, choice_number=1)
+
+        url = reverse("subjects-choices-modify",
+                      args=["1", "1"])  # subject & teacher have the argument 1
+
+        response = self.client.post(url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Choices.objects.count(), 1)
+        instance = Choices.objects.get(
+            subject=self.subject1, teacher=self.teacher1)
+        self.assertEqual(instance.choice_number, 1)
+
+    def test_deleting_a_teacher_that_is_manually_added(self):
+        url = reverse("subjects-choices-modify",
+                      args=["1", "1"])  # subject & teacher have the argument 1
+
+        self.client.post(url, format="json")
+        self.assertEqual(Choices.objects.count(), 1)
+
+        response = self.client.delete(url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Choices.objects.count(), 0)
+
+    def test_not_being_able_to_delete_a_teacher_not_manually_added(self):
+        """
+        You should not be able to delete a teacher that was not manually added to the choice set
+        """
+        Choices.objects.create(subject=self.subject1,
+                               teacher=self.teacher1, choice_number=1)
+
+        url = reverse("subjects-choices-modify",
+                      args=["1", "1"])  # subject & teacher have the argument 1
+
+        response = self.client.delete(url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Choices.objects.count(), 1)
+
+    def test_deleting_a_teacher_that_does_not_exist(self):
+        url = reverse("subjects-choices-modify",
+                      args=["1", "1"])  # subject & teacher have the argument 1
+
+        response = self.client.delete(url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

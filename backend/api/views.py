@@ -1,7 +1,8 @@
 from common_models import serializers
 from common_models.models import Allotment, Choices, Subject, Teacher
+from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiParameter, extend_schema
-from rest_framework import viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -47,6 +48,7 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=True, methods=["POST", "DELETE"], url_path=r'choices/modify/(?P<teacher>\w+)')
     def choices_modify(self, request: Request, pk=None, teacher=None):
         subject = self.get_object()
+
         if request.method == "POST":
             serializer = serializers.SubjectChoicesPOSTSerializer(
                 data={'teacher': teacher, 'subject': subject.id})
@@ -55,15 +57,13 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
                                               subject=subject,
                                               choice_number=serializer.validated_data["choice_number"])
             instance.save()
-            return Response(serializer.data)
 
         elif request.method == "DELETE":
-            serializer = serializers.SubjectChoicesPOSTSerializer(
-                data={'teacher': teacher})
-            serializer.is_valid(raise_exception=True)
-            teacher = serializer.validated_data["teacher"]
-            instance = Choices.objects.get(teacher=teacher, subject__pk=pk)
-            return Response(serializers.SubjectChoicesSetSerializer(instance).data)
+            instance = get_object_or_404(
+                Choices, teacher__pk=teacher, subject__pk=pk)
+            if instance.manually_added is False:
+                return Response("cannot remove a teacher that is not manually added", status=status.HTTP_403_FORBIDDEN)
+            instance.delete()
 
         return self.choices(request, pk=pk)
 
