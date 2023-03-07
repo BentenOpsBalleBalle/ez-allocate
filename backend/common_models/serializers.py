@@ -115,3 +115,38 @@ class TeacherAllotmentSetSerializer(AllotmentSerializer):
 
     class Meta(AllotmentSerializer.Meta):
         exclude = AllotmentSerializer.Meta.exclude + ["teacher"]
+
+
+@extend_schema_serializer(exclude_fields=('subject', ))
+class CommitLTPSerializer(AllotmentSerializer):
+    # teacher = serializers.PrimaryKeyRelatedField(queryset=Teacher.objects.all())
+    # subject = serializers.PrimaryKeyRelatedField(queryset=Subject.objects.all())
+
+    class Meta(AllotmentSerializer.Meta):
+        pass
+
+    def validate(self, data):
+        """
+        Validates whether the submitted LTP hours are:
+            - feasible for teacher
+            - feasible for the subject
+        also conditions to check:
+            - the first teacher getting assigned lecture, should also be
+              allotted tutorial and practical 1 hour each
+        """
+        print(data)
+        teacher: Teacher = data["teacher"]
+        subject: Subject = data["subject"]
+        allotted_lecture_hours: int = data["allotted_lecture_hours"]
+        allotted_tutorial_hours: int = data["allotted_tutorial_hours"]
+        allotted_practical_hours: int = data["allotted_practical_hours"]
+
+        total_hours = allotted_lecture_hours + allotted_practical_hours + allotted_tutorial_hours
+
+        # validate if hours are feasible by the teacher
+        if teacher.hours_left() < total_hours:
+            raise serializers.ValidationError(
+                "exceeded maximum weekly workload! "
+                f"Teacher workload is already at {teacher.current_load} hours!"
+            )
+        return data

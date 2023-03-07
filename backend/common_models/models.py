@@ -1,6 +1,9 @@
 from typing import Tuple
 
 from django.conf import settings
+from django.core.validators import (
+    MaxValueValidator, MinValueValidator, int_list_validator
+)
 from django.db import models
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
@@ -188,6 +191,9 @@ class Teacher(models.Model):
         self.preferred_mode = self.preferred_mode.upper()
         super().save(*args, **kwargs)
 
+    def hours_left(self) -> int:
+        return MAXIMUM_TEACHER_WORKLOAD_hrs - self.current_load
+
 
 class Choices(models.Model):
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
@@ -206,9 +212,23 @@ class Allotment(models.Model):
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
 
-    allotted_lecture_hours = models.SmallIntegerField(default=0)
-    allotted_tutorial_hours = models.SmallIntegerField(default=0)
-    allotted_practical_hours = models.SmallIntegerField(default=0)
+    __validators = [
+        int_list_validator(sep="", code="number contains decimals"),
+        MinValueValidator(0)
+    ]
+    __validators_tut_and_prac = __validators + \
+        [MaxValueValidator(MAXIMUM_TEACHER_WORKLOAD_hrs)]
+
+    allotted_lecture_hours = models.SmallIntegerField(
+        default=0,
+        validators=__validators + [MaxValueValidator(MAXIMUM_TEACHER_WORKLOAD_hrs - 2)]
+    )
+    allotted_tutorial_hours = models.SmallIntegerField(
+        default=0, validators=__validators_tut_and_prac
+    )
+    allotted_practical_hours = models.SmallIntegerField(
+        default=0, validators=__validators_tut_and_prac
+    )
 
     def __str__(self):
         return f"teacher={self.teacher.name}, subject={self.subject.name}, lecture={self.allotted_lecture_hours}, " \

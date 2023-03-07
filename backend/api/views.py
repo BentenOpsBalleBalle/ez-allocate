@@ -105,6 +105,22 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
         serialzer = serializers.SubjectAllotmentSetSerializer(queryset, many=True)
         return Response(serialzer.data)
 
+    @extend_schema(
+        request=serializers.CommitLTPSerializer,
+        responses={200: serializers.SubjectAllotmentSetSerializer(many=True)}
+    )
+    @action(detail=True, methods=["POST"])
+    def commit_ltp(self, request, pk=None):
+        """
+        modifies the allotment entries for the given subject
+        """
+        data = request.data.dict()
+        data['subject'] = pk
+        serializer = serializers.CommitLTPSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+
+        return Response(serializer.data)
+
 
 class TeacherViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Teacher.objects.all()

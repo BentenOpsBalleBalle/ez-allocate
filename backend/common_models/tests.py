@@ -264,3 +264,56 @@ class ComputedStatusFieldTest(TestCase):
             }
         )
         self.assertEqual(self.subject3.allotment_status, AllotmentStatus.ERROR)
+
+
+class AllottmentValidatorTest(TestCase):
+    """
+    Test for:
+        - TODO: wrong type (even floats) in serializers ke test
+        - min and maximum values
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.subject1 = Subject(
+            name="subject1",
+            course_code="sub1",
+            credits=5,
+            course_type=Subject.CourseType.CORE,
+            original_lecture_hours=3,
+            original_tutorial_hours=1,
+            original_practical_hours=1,
+            number_of_lecture_batches=2,
+            number_of_practical_or_tutorial_batches=6
+        )
+        cls.subject1.save()
+
+        cls.teacher1 = Teacher(name="john")
+        cls.teacher1.save()
+
+    @parametrize(
+        "l,t,p",
+        [
+            # Test L, T, P's max value each [max limit: <= 14]
+            (0, 0, 15),
+            (0, 15, 0),
+            (13, 0, 0),
+
+            # Test LTP's min value each
+            (0, 0, -1),
+            (0, -1, 0),
+            (-1, 0, 0),
+        ]
+    )
+    def test_allotment_LTP_values(self, l, t, p):
+        a: Allotment = Allotment.objects.create(
+            subject=self.subject1,
+            teacher=self.teacher1,
+            **{
+                'allotted_lecture_hours': l,
+                'allotted_tutorial_hours': t,
+                'allotted_practical_hours': p
+            }
+        )
+        print(a)
+        self.assertRaises(ValidationError, a.full_clean)
