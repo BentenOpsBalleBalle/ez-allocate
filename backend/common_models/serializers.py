@@ -25,14 +25,19 @@ class _ExtraFieldModelSerializer(serializers.ModelSerializer):
 
 
 class SubjectSerializer(_ExtraFieldModelSerializer):
+
     class Meta:
         model = Subject
         exclude = ["_allotment_status"]
-        extra_fields = ["total_lecture_hours",  "total_tutorial_hours", "total_practical_hours",
-                        "allotted_lecture_hours", "allotted_tutorial_hours", "allotted_practical_hours", "allotment_status"]
+        extra_fields = [
+            "total_lecture_hours", "total_tutorial_hours", "total_practical_hours",
+            "allotted_lecture_hours", "allotted_tutorial_hours", "allotted_practical_hours",
+            "allotment_status"
+        ]
 
 
 class SubjectListSerializer(_ExtraFieldModelSerializer):
+
     class Meta:
         model = Subject
         fields = ["id", "name", "course_code", "programme", "credits"]
@@ -40,6 +45,7 @@ class SubjectListSerializer(_ExtraFieldModelSerializer):
 
 
 class TeacherSerializer(_ExtraFieldModelSerializer):
+
     class Meta:
         model = Teacher
         exclude = ["_assigned_status", "subject_choices"]
@@ -47,6 +53,7 @@ class TeacherSerializer(_ExtraFieldModelSerializer):
 
 
 class ChoiceSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Choices
         exclude = ["id"]
@@ -59,18 +66,18 @@ class SubjectChoicesSetSerializer(ChoiceSerializer):
         exclude = ChoiceSerializer.Meta.exclude + ["subject"]
 
 
-@extend_schema_serializer(exclude_fields=('choice_number',))
+@extend_schema_serializer(exclude_fields=('choice_number', ))
 class SubjectChoicesPOSTSerializer(ChoiceSerializer):
-    teacher = serializers.PrimaryKeyRelatedField(
-        queryset=Teacher.objects.all())
+    teacher = serializers.PrimaryKeyRelatedField(queryset=Teacher.objects.all())
     __default_choice_number = settings.CUSTOM_SETTINGS["MANUAL_CHOICE_NUMBER"] or 0
-    choice_number = serializers.IntegerField(default=0,
-                                             validators=[
-                                                 validators.MinValueValidator(
-                                                     __default_choice_number),
-                                                 validators.MaxValueValidator(__default_choice_number)],
-                                             required=False
-                                             )
+    choice_number = serializers.IntegerField(
+        default=0,
+        validators=[
+            validators.MinValueValidator(__default_choice_number),
+            validators.MaxValueValidator(__default_choice_number)
+        ],
+        required=False
+    )
 
     class Meta(ChoiceSerializer.Meta):
         validators = [
@@ -83,8 +90,7 @@ class SubjectChoicesPOSTSerializer(ChoiceSerializer):
 
 
 class TeacherChoicesSetSerializer(ChoiceSerializer):
-    subject = SubjectListSerializer(
-        read_only=True)
+    subject = SubjectListSerializer(read_only=True)
 
     class Meta(ChoiceSerializer.Meta):
         exclude = ChoiceSerializer.Meta.exclude + ["teacher"]

@@ -14,7 +14,6 @@ from .utils.validators import teacher_model_validate_ltp_preference
 # TODO: add multi field validation https://stackoverflow.com/a/43168682
 # TODO: create Subjects.programme a list of choices
 
-
 # CONSTANTS
 MAXIMUM_TEACHER_WORKLOAD_hrs = settings.CUSTOM_SETTINGS["MAX_TEACHER_WORKLOAD_HOURS"] or 14
 
@@ -26,7 +25,9 @@ class AllotmentStatus(models.TextChoices):
     ERROR = "ERRR", _('Error')
 
     @classmethod
-    def compute_partial_or_full(cls, current_value: Tuple[int, ...], maximum_value: Tuple[int, ...]):
+    def compute_partial_or_full(
+        cls, current_value: Tuple[int, ...], maximum_value: Tuple[int, ...]
+    ):
         """
         Given the current value of a field, and the maximum it can reach,
         This function outputs:
@@ -73,6 +74,7 @@ class AllotmentStatus(models.TextChoices):
 #   - properties -> row-level functionality
 #   - manager methods -> table-level functionality
 class Subject(models.Model):
+
     class CourseType(models.TextChoices):
         CORE = "CORE"
         ELECTIVE = "ELEC"
@@ -91,7 +93,8 @@ class Subject(models.Model):
     number_of_practical_or_tutorial_batches = models.SmallIntegerField()
 
     _allotment_status = models.CharField(
-        max_length=4, choices=AllotmentStatus.choices, default=AllotmentStatus.NONE)
+        max_length=4, choices=AllotmentStatus.choices, default=AllotmentStatus.NONE
+    )
     allotted_teachers = models.ManyToManyField("Teacher", through="Allotment")
 
     def __str__(self):
@@ -100,10 +103,14 @@ class Subject(models.Model):
     @property
     def allotment_status(self) -> AllotmentStatus:
         current = AllotmentStatus.compute_partial_or_full(
-            current_value=(self.allotted_lecture_hours,
-                           self.allotted_practical_hours, self.allotted_tutorial_hours),
-            maximum_value=(self.total_lecture_hours,
-                           self.total_practical_hours, self.total_tutorial_hours)
+            current_value=(
+                self.allotted_lecture_hours, self.allotted_practical_hours,
+                self.allotted_tutorial_hours
+            ),
+            maximum_value=(
+                self.total_lecture_hours, self.total_practical_hours,
+                self.total_tutorial_hours
+            )
         )
         if current != self._allotment_status:
             self._allotment_status = current
@@ -124,10 +131,11 @@ class Subject(models.Model):
 
     @cached_property
     def __allotted_hours_computed(self):
-        return self.allotment_set.aggregate(lecture=models.Sum('allotted_lecture_hours'),
-                                            tutorial=models.Sum(
-                                                'allotted_tutorial_hours'),
-                                            practical=models.Sum('allotted_practical_hours'))
+        return self.allotment_set.aggregate(
+            lecture=models.Sum('allotted_lecture_hours'),
+            tutorial=models.Sum('allotted_tutorial_hours'),
+            practical=models.Sum('allotted_practical_hours')
+        )
 
     @property
     def allotted_lecture_hours(self) -> int:
@@ -147,9 +155,11 @@ class Teacher(models.Model):
     name = models.CharField(max_length=128)
 
     preferred_mode = models.CharField(
-        max_length=3, validators=[teacher_model_validate_ltp_preference], default="LTP")
+        max_length=3, validators=[teacher_model_validate_ltp_preference], default="LTP"
+    )
     _assigned_status = models.CharField(
-        max_length=4, choices=AllotmentStatus.choices, default=AllotmentStatus.NONE)
+        max_length=4, choices=AllotmentStatus.choices, default=AllotmentStatus.NONE
+    )
 
     subject_choices = models.ManyToManyField(Subject, through="Choices")
 
@@ -158,15 +168,16 @@ class Teacher(models.Model):
 
     @cached_property
     def current_load(self) -> int:
-        return self.allotment_set.aggregate(load=models.Sum('allotted_lecture_hours') +
-                                            models.Sum('allotted_tutorial_hours') +
-                                            models.Sum('allotted_practical_hours'))['load'] or 0
+        return self.allotment_set.aggregate(
+            load=models.Sum('allotted_lecture_hours') +
+            models.Sum('allotted_tutorial_hours') + models.Sum('allotted_practical_hours')
+        )['load'] or 0
 
     @property
     def assigned_status(self) -> AllotmentStatus:
         current = AllotmentStatus.compute_partial_or_full(
-            current_value=(self.current_load,),
-            maximum_value=(MAXIMUM_TEACHER_WORKLOAD_hrs,)
+            current_value=(self.current_load, ),
+            maximum_value=(MAXIMUM_TEACHER_WORKLOAD_hrs, )
         )
         if current != self._assigned_status:
             self._assigned_status = current

@@ -34,35 +34,62 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
         """
         subject: Subject = self.get_object()
         serializer = serializers.SubjectChoicesSetSerializer(
-            subject.choices_set.all().order_by("choice_number"), many=True)
+            subject.choices_set.all().order_by("choice_number"), many=True
+        )
         return Response(serializer.data)
 
-    @extend_schema(description="adds a teacher into a subject's choices manually. raises a `400`"
-                               " response if the teacher is already added in the set",
-                   request=None,
-                   methods=["POST"])
-    @extend_schema(description="Deletes a manually added teacher from the choices set", methods=["DELETE"])
-    @extend_schema(parameters=[
-        OpenApiParameter(name='teacher', description='the Teacher\'s id', required=True, type=int, location="path")],
-        responses={200: serializers.SubjectChoicesSetSerializer(many=True)})
-    @action(detail=True, methods=["POST", "DELETE"], url_path=r'choices/modify/(?P<teacher>\w+)')
+    @extend_schema(
+        description="adds a teacher into a subject's choices manually. raises a `400`"
+        " response if the teacher is already added in the set",
+        request=None,
+        methods=["POST"]
+    )
+    @extend_schema(
+        description="Deletes a manually added teacher from the choices set",
+        methods=["DELETE"]
+    )
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='teacher',
+                description='the Teacher\'s id',
+                required=True,
+                type=int,
+                location="path"
+            )
+        ],
+        responses={200: serializers.SubjectChoicesSetSerializer(many=True)}
+    )
+    @action(
+        detail=True,
+        methods=["POST", "DELETE"],
+        url_path=r'choices/modify/(?P<teacher>\w+)'
+    )
     def choices_modify(self, request: Request, pk=None, teacher=None):
         subject = self.get_object()
 
         if request.method == "POST":
             serializer = serializers.SubjectChoicesPOSTSerializer(
-                data={'teacher': teacher, 'subject': subject.id})
+                data={
+                    'teacher': teacher,
+                    'subject': subject.id
+                }
+            )
             serializer.is_valid(raise_exception=True)
-            instance = Choices.objects.create(teacher=serializer.validated_data["teacher"],
-                                              subject=subject,
-                                              choice_number=serializer.validated_data["choice_number"])
+            instance = Choices.objects.create(
+                teacher=serializer.validated_data["teacher"],
+                subject=subject,
+                choice_number=serializer.validated_data["choice_number"]
+            )
             instance.save()
 
         elif request.method == "DELETE":
-            instance = get_object_or_404(
-                Choices, teacher__pk=teacher, subject__pk=pk)
+            instance = get_object_or_404(Choices, teacher__pk=teacher, subject__pk=pk)
             if instance.manually_added is False:
-                return Response("cannot remove a teacher that is not manually added", status=status.HTTP_403_FORBIDDEN)
+                return Response(
+                    "cannot remove a teacher that is not manually added",
+                    status=status.HTTP_403_FORBIDDEN
+                )
             instance.delete()
 
         return self.choices(request, pk=pk)
@@ -75,8 +102,7 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
         alongwith the LTP hours
         """
         queryset = Allotment.objects.filter(subject__pk=pk)
-        serialzer = serializers.SubjectAllotmentSetSerializer(
-            queryset, many=True)
+        serialzer = serializers.SubjectAllotmentSetSerializer(queryset, many=True)
         return Response(serialzer.data)
 
 
@@ -93,7 +119,8 @@ class TeacherViewSet(viewsets.ReadOnlyModelViewSet):
         """
         teacher: Teacher = self.get_object()
         serializer = serializers.TeacherChoicesSetSerializer(
-            Choices.objects.filter(teacher=teacher).order_by("choice_number"), many=True)
+            Choices.objects.filter(teacher=teacher).order_by("choice_number"), many=True
+        )
         return Response(serializer.data)
 
     @extend_schema(responses={200: serializers.TeacherAllotmentSetSerializer})
@@ -104,6 +131,5 @@ class TeacherViewSet(viewsets.ReadOnlyModelViewSet):
         alongwith their LTP hours
         """
         queryset = Allotment.objects.filter(teacher__pk=pk)
-        serializer = serializers.TeacherAllotmentSetSerializer(
-            queryset, many=True)
+        serializer = serializers.TeacherAllotmentSetSerializer(queryset, many=True)
         return Response(serializer.data)
