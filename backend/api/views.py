@@ -114,7 +114,11 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
         """
         modifies the allotment entries for the given subject
         """
-        data = request.data.dict()
+        # fix for unit tests. for some reason dict is passed instead of QueryDict
+        if isinstance(request.data, dict):
+            data = request.data.copy()
+        else:
+            data = request.data.dict()
         data['subject'] = pk
         serializer = serializers.CommitLTPSerializer(data=data)
         serializer.is_valid(raise_exception=True)
