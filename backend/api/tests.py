@@ -133,10 +133,15 @@ class CommitLTPValidatorTest(APITestCase):
         cls.teacher1.save()
 
     def call_api(
-        self, teacher=1, allotted_lecture=0, allotted_tutorial=0, allotted_practical=0
+        self,
+        teacher=1,
+        subject="1",
+        allotted_lecture=0,
+        allotted_tutorial=0,
+        allotted_practical=0
     ):
         url = reverse(
-            "subjects-commit-ltp", args=["1"]
+            "subjects-commit-ltp", args=[subject]
         )  # subject & teacher have the argument 1
         data = {
             "teacher": teacher,
@@ -223,6 +228,26 @@ class CommitLTPValidatorTest(APITestCase):
 
         response = self.call_api(
             allotted_lecture=1, allotted_tutorial=1, allotted_practical=1
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        subject_no_prac = Subject(
+            name="subject3",
+            course_code="sub3",
+            credits=2,
+            course_type=Subject.CourseType.CORE,
+            original_lecture_hours=1,
+            original_tutorial_hours=1,
+            original_practical_hours=0,
+            number_of_lecture_batches=2,
+            number_of_practical_or_tutorial_batches=6
+        )
+        subject_no_prac.save()
+        response = self.call_api(
+            subject=subject_no_prac.id,
+            allotted_lecture=1,
+            allotted_tutorial=1,
+            allotted_practical=0
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
