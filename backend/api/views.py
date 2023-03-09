@@ -130,7 +130,7 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
 
         serializer.save()
 
-        return Response(serializer.data)
+        return self.allotments(request, pk=pk)
 
     @extend_schema(
         description="Removes the `teacher_id`'s allotment entry, if found",
