@@ -188,3 +188,14 @@ class CommitLTPSerializer(AllotmentSerializer):
                         }
                     )
         return data
+
+    def is_empty_allotment(self) -> bool:
+        """
+        returns if the given allotment is empty aka LTP are at 0
+        """
+
+        return (
+            self.validated_data["allotted_lecture_hours"] +
+            self.validated_data["allotted_tutorial_hours"] +
+            self.validated_data["allotted_practical_hours"]
+        ) == 0

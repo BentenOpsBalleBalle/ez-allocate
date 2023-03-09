@@ -329,7 +329,7 @@ class CommitLTPValidatorTest(APITestCase):
             allotted_tutorial_hours=3,
             allotted_practical_hours=6
         )
-        url = reverse("subjects-commit-ltp", args=["1", "1"])
+        url = reverse("subjects-commit-ltp-delete", args=["1", "1"])
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Allotment.objects.count(), 0)

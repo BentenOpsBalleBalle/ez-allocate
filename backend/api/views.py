@@ -123,7 +123,39 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = serializers.CommitLTPSerializer(data=data)
         serializer.is_valid(raise_exception=True)
 
+        if serializer.is_empty_allotment():
+            return self.commit_ltp_delete(
+                request, pk, teacher_id=serializer.data["teacher"]
+            )
+
+        serializer.save()
+
         return Response(serializer.data)
+
+    @extend_schema(
+        description="Removes the `teacher_id`'s allotment entry, if found",
+        parameters=[
+            OpenApiParameter(
+                name='teacher_id',
+                description='the Teacher\'s id',
+                required=True,
+                type=int,
+                location="path"
+            )
+        ],
+        responses={
+            200: serializers.SubjectChoicesSetSerializer(many=True),
+            404: None
+        },
+        methods=["DELETE"]
+    )
+    @action(detail=True, methods=["DELETE"], url_path=r"commit_ltp/(?P<teacher_id>\w+)")
+    def commit_ltp_delete(self, request, pk=None, teacher_id=None):
+        allottment_instance = get_object_or_404(
+            Allotment, subject__pk=pk, teacher__pk=teacher_id
+        )
+        allottment_instance.delete()
+        return self.allotments(request, pk=pk)
 
 
 class TeacherViewSet(viewsets.ReadOnlyModelViewSet):
