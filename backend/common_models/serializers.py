@@ -1,3 +1,5 @@
+from typing import OrderedDict
+
 from django.conf import settings
 from django.core import validators
 from drf_spectacular.utils import extend_schema_serializer
@@ -125,7 +127,7 @@ class CommitLTPSerializer(AllotmentSerializer):
     class Meta(AllotmentSerializer.Meta):
         pass
 
-    def validate(self, data):
+    def validate(self, data: OrderedDict):
         """
         Validates whether the submitted LTP hours are:
             - feasible for teacher
@@ -134,12 +136,12 @@ class CommitLTPSerializer(AllotmentSerializer):
             - the first teacher getting assigned lecture, should also be
               allotted tutorial and practical 1 hour each
         """
-        print(data)
+        # print(data)
         teacher: Teacher = data["teacher"]
         subject: Subject = data["subject"]
-        allotted_lecture_hours: int = data["allotted_lecture_hours"]
-        allotted_tutorial_hours: int = data["allotted_tutorial_hours"]
-        allotted_practical_hours: int = data["allotted_practical_hours"]
+        allotted_lecture_hours: int = data.setdefault("allotted_lecture_hours", 0)
+        allotted_tutorial_hours: int = data.setdefault("allotted_tutorial_hours", 0)
+        allotted_practical_hours: int = data.setdefault("allotted_practical_hours", 0)
 
         total_hours = allotted_lecture_hours + allotted_practical_hours + allotted_tutorial_hours
 
@@ -149,4 +151,40 @@ class CommitLTPSerializer(AllotmentSerializer):
                 "exceeded maximum weekly workload! "
                 f"Teacher workload is already at {teacher.current_load} hours!"
             )
+
+        # validate hours feasible by the subject
+        # allotted L, T, P should be less than the subject's limits
+        keys = ("_lecture_hours", "_tutorial_hours", "_practical_hours")
+
+        # get available subject hours
+        for key in keys:
+            available_hours = subject.__getattribute__(
+                "total" + key
+            ) - subject.__getattribute__("allotted" + key)
+            if data["allotted" + key] > available_hours:
+                raise serializers.ValidationError(
+                    {
+                        "allotted" + key:
+                        f"exceeded available {key[1:]}. remaining hours: {available_hours}"
+                    }
+                )
+
+        # first teacher given Lecture should be given T, P hours too, if they exist
+        if allotted_lecture_hours != 0 and (
+            Allotment.objects.filter(subject=subject).count() == 0
+        ):
+            for key in keys[1:]:  # over tutorial and practical hours
+                allotted_key = "allotted" + key
+                if data[allotted_key] == 0 and (
+                    # only if Tut or Prac's total hours aren't 0
+                    subject.__getattribute__('total' + key) != 0
+                ):
+                    raise serializers.ValidationError(
+                        {
+                            allotted_key:
+                            "The first teacher allotted lecture hours should also be allotted"
+                            f" at least 1 hour of {(tut_or_prac := key[1:].rstrip('_hours').capitalize())}."
+                            f"\n remaining {tut_or_prac} hours: {subject.__getattribute__('total' + key)}"
+                        }
+                    )
         return data
