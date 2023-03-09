@@ -315,5 +315,4 @@ class AllottmentValidatorTest(TestCase):
                 'allotted_practical_hours': p
             }
         )
-        print(a)
         self.assertRaises(ValidationError, a.full_clean)
