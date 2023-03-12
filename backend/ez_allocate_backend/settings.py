@@ -15,7 +15,7 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
+# yapf: disable
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
@@ -26,6 +26,12 @@ SECRET_KEY = 'django-insecure-(%sp-nqnn$erii=ra&gx_uyiv)ornelvd+zynl0z2-r566^0+4
 DEBUG = True
 
 ALLOWED_HOSTS = []
+
+# CUSTOM SETTINGS
+CUSTOM_SETTINGS = {
+    "MANUAL_CHOICE_NUMBER": 0,
+    "MAX_TEACHER_WORKLOAD_HOURS": 14
+}
 
 # CORS SETTINGS
 CORS_ALLOWED_ORIGINS = [
