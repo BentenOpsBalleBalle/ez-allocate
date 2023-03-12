@@ -10,7 +10,8 @@ services:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      - AUTH_URL=http://auth:3000
+      - AUTH_URL=http://localhost:3000/
+      - ALLOCATE_URL=http://localhost:8000/
 
   auth:
     build:

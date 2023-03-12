@@ -1,4 +1,5 @@
 import axios from "axios";
+
 export default class Client {
     static instance;
 
@@ -9,13 +10,21 @@ export default class Client {
         Client.instance = this;
     }
 
-    createUrl({ url, method, body = {}, headers = {} }) {
+    createUrl({ url, method, body = {}, headers = {}, service }) {
         if (!this.token) {
             this.token = null;
         }
+
         const tokenHeader = {
             authorization: `Bearer ${this.token}`,
         };
+
+        if (service === "auth") {
+            url = `${process.env.AUTH_URL || "http://localhost:3000/"}${url}`;
+        } else if (service === "allocate") {
+            url = `${process.env.ALLOCATE_URL || "http://localhost:8000/"}${url}`;
+        }
+
         return axios({
             method: method,
             url: url,

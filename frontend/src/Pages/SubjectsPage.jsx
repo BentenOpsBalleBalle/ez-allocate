@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import Client from "../helpers/Client";
-import FetchingIndicator from "./common/FetchingIndicator";
-import { Pagination } from "./common/Pagination";
+import FetchingIndicator from "../components/common/FetchingIndicator";
+import { Pagination } from "../components/common/Pagination";
 
-import SubjectCard from "./SubjectCard";
+import SubjectCard from "../components/SubjectCard";
 
 const client = new Client();
 
@@ -14,7 +14,7 @@ const getSubjects = async (page) => {
         method: "GET",
     });
 };
-function SubjectList() {
+function SubjectsPage() {
     const [page, setPage] = useState(1);
     const subjectsQuery = useQuery(
         ["subjects", { page }],
@@ -78,4 +78,4 @@ function SubjectList() {
     );
 }
 
-export default SubjectList;
+export default SubjectsPage;
