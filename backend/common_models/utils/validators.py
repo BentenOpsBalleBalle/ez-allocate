@@ -13,4 +13,7 @@ def teacher_model_validate_ltp_preference(preference: str):
 
     # make sure preference only contains letters {L,T,P} and no duplicates
     if set(preference) != {"L", "T", "P"}:
-        raise ValidationError("preference '%(pref)s' should contain one each of: L, T, P", params={"pref": preference})
+        raise ValidationError(
+            "preference '%(pref)s' should contain one each of: L, T, P",
+            params={"pref": preference}
+        )

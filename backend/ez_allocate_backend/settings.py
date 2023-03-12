@@ -9,13 +9,13 @@ https://docs.djangoproject.com/en/4.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
-
+from os import getenv
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
+# yapf: disable
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
@@ -26,6 +26,12 @@ SECRET_KEY = 'django-insecure-(%sp-nqnn$erii=ra&gx_uyiv)ornelvd+zynl0z2-r566^0+4
 DEBUG = True
 
 ALLOWED_HOSTS = []
+
+# CUSTOM SETTINGS
+CUSTOM_SETTINGS = {
+    "MANUAL_CHOICE_NUMBER": 0,
+    "MAX_TEACHER_WORKLOAD_HOURS": 14
+}
 
 # CORS SETTINGS
 CORS_ALLOWED_ORIGINS = [
@@ -54,6 +60,7 @@ SPECTACULAR_SETTINGS = {
 INSTALLED_APPS = [
     'common_models',
     'api',
+    'tasks',
     'rest_framework',
     'corsheaders',
     'drf_spectacular',
@@ -103,7 +110,10 @@ WSGI_APPLICATION = 'ez_allocate_backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': BASE_DIR / ('mock-db.sqlite3'
+                            if getenv("USE_MOCK_DB", "False").lower() in ('true', '1')
+                            else 'db.sqlite3'
+                            ),
     }
 }
 
