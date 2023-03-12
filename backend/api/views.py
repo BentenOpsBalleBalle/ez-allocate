@@ -4,15 +4,21 @@ from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.request import Request
 from rest_framework.response import Response
 
 # Create your views here.
 
 
+class CustomPagination(PageNumberPagination):
+    page_size = 10
+
+
 class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Subject.objects.all()
     serializer_class = serializers.SubjectSerializer
+    pagination_class = CustomPagination
 
     @extend_schema(responses={200: serializers.SubjectListSerializer})
     def list(self, request, *args, **kwargs):
@@ -161,6 +167,7 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
 class TeacherViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Teacher.objects.all()
     serializer_class = serializers.TeacherSerializer
+    pagination_class = CustomPagination
 
     @extend_schema(responses={200: serializers.TeacherChoicesSetSerializer})
     @action(detail=True)
