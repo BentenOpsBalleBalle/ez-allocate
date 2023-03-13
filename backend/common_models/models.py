@@ -156,6 +156,7 @@ class Subject(models.Model):
 class Teacher(models.Model):
 
     name = models.CharField(max_length=128)
+    email = models.EmailField(unique=True)
 
     preferred_mode = models.CharField(
         max_length=3, validators=[teacher_model_validate_ltp_preference], default="LTP"
