@@ -91,6 +91,16 @@ class SubjectChoicesPOSTSerializer(ChoiceSerializer):
         ]
 
 
+class ChoicesCeleryImportSerialiser(ChoiceSerializer):
+    """
+    This serialiser is meant to be used in celery/import function to directly
+    add choices to db. has the unique together validator
+    """
+
+    class Meta(SubjectChoicesPOSTSerializer.Meta):
+        pass
+
+
 class TeacherChoicesSetSerializer(ChoiceSerializer):
     subject = SubjectListSerializer(read_only=True)
 
