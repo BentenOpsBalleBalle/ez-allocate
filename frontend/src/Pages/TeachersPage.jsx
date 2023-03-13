@@ -71,16 +71,10 @@ function TeacherCard({ name, email, prefferred_mode, id }) {
             />
 
             <div className="text-l font-sans font-bold ml-2">{name}</div>
-            <div className="flex  items-center text-center">
-                <div className="w-8 h-8 rounded-full bg-red-100">
-                    {prefferred_mode[0]}
-                </div>
-                <div className="w-8 h-8 rounded-full bg-red-100">
-                    {prefferred_mode[1]}
-                </div>
-                <div className="w-8 h-8 rounded-full bg-red-100">
-                    {prefferred_mode[2]}
-                </div>
+            <div className="flex gap-2 px-2 rounded-md bg-red-100 w-16 text-center m-2">
+                <div className="font-bold">{prefferred_mode[0]}</div>
+                <div className="font-bold">{prefferred_mode[1]}</div>
+                <div className="font-bold">{prefferred_mode[2]}</div>
             </div>
         </div>
     );
