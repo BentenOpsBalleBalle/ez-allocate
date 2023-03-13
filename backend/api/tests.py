@@ -265,7 +265,7 @@ class CommitLTPValidatorTest(APITestCase):
         )
         subject1.save()
 
-        teacher2 = Teacher(name="bob doe")
+        teacher2 = Teacher(name="bob doe", email="bob@doe.com")
         teacher2.save()
 
         Allotment.objects.create(
