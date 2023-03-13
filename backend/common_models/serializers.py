@@ -42,7 +42,7 @@ class SubjectListSerializer(_ExtraFieldModelSerializer):
 
     class Meta:
         model = Subject
-        fields = ["id", "name", "course_code", "programme", "credits"]
+        fields = ["id", "name", "course_code", "course_type", "programme", "credits"]
         extra_fields = ["allotment_status"]
 
 
