@@ -32,7 +32,7 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
         return response
 
     @extend_schema(responses={200: serializers.SubjectChoicesSetSerializer(many=True)})
-    @action(detail=True)
+    @action(detail=True, pagination_class=None)
     def choices(self, request, pk=None):
         """
         Returns the list of teachers that have selected the current subject
@@ -69,7 +69,8 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
     @action(
         detail=True,
         methods=["POST", "DELETE"],
-        url_path=r'choices/modify/(?P<teacher>\w+)'
+        url_path=r'choices/modify/(?P<teacher>\w+)',
+        pagination_class=None
     )
     def choices_modify(self, request: Request, pk=None, teacher=None):
         subject = self.get_object()
@@ -101,7 +102,7 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
         return self.choices(request, pk=pk)
 
     @extend_schema(responses={200: serializers.SubjectAllotmentSetSerializer})
-    @action(detail=True)
+    @action(detail=True, pagination_class=None)
     def allotments(self, request, pk=None):
         """
         Returns the list of teachers that have been allotted to the current subject
@@ -115,7 +116,7 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
         request=serializers.CommitLTPSerializer,
         responses={200: serializers.SubjectAllotmentSetSerializer(many=True)}
     )
-    @action(detail=True, methods=["POST"])
+    @action(detail=True, methods=["POST"], pagination_class=None)
     def commit_ltp(self, request, pk=None):
         """
         modifies the allotment entries for the given subject
@@ -155,7 +156,12 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
         },
         methods=["DELETE"]
     )
-    @action(detail=True, methods=["DELETE"], url_path=r"commit_ltp/(?P<teacher_id>\w+)")
+    @action(
+        detail=True,
+        methods=["DELETE"],
+        url_path=r"commit_ltp/(?P<teacher_id>\w+)",
+        pagination_class=None
+    )
     def commit_ltp_delete(self, request, pk=None, teacher_id=None):
         allottment_instance = get_object_or_404(
             Allotment, subject__pk=pk, teacher__pk=teacher_id
