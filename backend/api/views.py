@@ -12,7 +12,7 @@ from rest_framework.response import Response
 
 
 class CustomPagination(PageNumberPagination):
-    page_size = 10
+    page_size = 8
 
 
 class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
