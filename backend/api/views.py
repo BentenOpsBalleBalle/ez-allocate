@@ -135,7 +135,7 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
                 request, pk, teacher_id=serializer.data["teacher"]
             )
 
-        serializer.save()
+        serializer.update_or_save()
 
         return self.allotments(request, pk=pk)
 

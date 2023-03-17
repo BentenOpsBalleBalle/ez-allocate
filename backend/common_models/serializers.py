@@ -1,3 +1,4 @@
+import logging
 from typing import OrderedDict
 
 from django.conf import settings
@@ -9,6 +10,8 @@ from rest_framework.validators import UniqueTogetherValidator
 from .models import Allotment, Choices, Subject, Teacher
 
 # TODO: add unit tests to make sure all properties are returned in the response
+
+logger = logging.getLogger(__name__)
 
 
 class _ExtraFieldModelSerializer(serializers.ModelSerializer):
@@ -209,3 +212,18 @@ class CommitLTPSerializer(AllotmentSerializer):
             self.validated_data["allotted_tutorial_hours"] +
             self.validated_data["allotted_practical_hours"]
         ) == 0
+
+    def update_or_save(self):
+        instance_list = Allotment.objects.filter(
+            subject=self.validated_data["subject"], teacher=self.validated_data["teacher"]
+        )
+        if len(instance_list) == 1:
+            self.update(instance_list[0], self.validated_data)
+        elif len(instance_list) == 0:
+            self.save()
+        else:
+            logger.critical(
+                "this should not be possible!! have %d instances of "
+                "Allotment for subject: \"%s\" & teacher: \"%s\"", len(instance_list),
+                self.validated_data["subject"], self.validated_data["teacher"]
+            )

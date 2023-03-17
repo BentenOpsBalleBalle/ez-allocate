@@ -333,3 +333,31 @@ class CommitLTPValidatorTest(APITestCase):
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Allotment.objects.count(), 0)
+
+    def test_existing_allotment_is_updated(self):
+        subject1 = Subject(
+            name="subject1",
+            course_code="sub1",
+            credits=3,
+            course_type=Subject.CourseType.CORE,
+            original_lecture_hours=5,
+            original_tutorial_hours=5,
+            original_practical_hours=5,
+            number_of_lecture_batches=2,
+            number_of_practical_or_tutorial_batches=4
+        )
+        subject1.save()
+
+        response = self.call_api(
+            allotted_lecture=1, allotted_tutorial=2, allotted_practical=6
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Allotment.objects.count(), 1)
+
+        # now update it
+        response = self.call_api(
+            allotted_lecture=3, allotted_tutorial=2, allotted_practical=0
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Allotment.objects.count(), 1)
