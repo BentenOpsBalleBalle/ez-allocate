@@ -156,7 +156,28 @@ class CommitLTPSerializer(AllotmentSerializer):
         allotted_tutorial_hours: int = data.setdefault("allotted_tutorial_hours", 0)
         allotted_practical_hours: int = data.setdefault("allotted_practical_hours", 0)
 
-        total_hours = allotted_lecture_hours + allotted_practical_hours + allotted_tutorial_hours
+        if len(
+            instance_list := Allotment.objects.filter(subject=subject, teacher=teacher)
+        ) == 1:
+            __current_instance = instance_list[0]
+
+            current_instance_hours = {
+                "allotted_lecture_hours": __current_instance.allotted_lecture_hours,
+                "allotted_tutorial_hours": __current_instance.allotted_tutorial_hours,
+                "allotted_practical_hours": __current_instance.allotted_practical_hours
+            }
+        else:
+            current_instance_hours = {
+                "allotted_lecture_hours": 0,
+                "allotted_tutorial_hours": 0,
+                "allotted_practical_hours": 0
+            }
+
+        total_hours = (
+            allotted_lecture_hours + allotted_practical_hours + allotted_tutorial_hours +
+            # subtract current instance's hours from the total hours
+            -sum(current_instance_hours.values())
+        )
 
         # validate if hours are feasible by the teacher
         if teacher.hours_left() < total_hours:
@@ -171,14 +192,18 @@ class CommitLTPSerializer(AllotmentSerializer):
 
         # get available subject hours
         for key in keys:
-            available_hours = subject.__getattribute__(
-                "total" + key
-            ) - subject.__getattribute__("allotted" + key)
+            available_hours = (
+                subject.__getattribute__("total" + key) +
+                current_instance_hours.get("allotted" + key) -
+                subject.__getattribute__("allotted" + key)
+            )
+
             if data["allotted" + key] > available_hours:
                 raise serializers.ValidationError(
                     {
                         "allotted" + key:
                         f"exceeded available {key[1:]}. remaining hours: {available_hours}"
+                        f"""\n{current_instance_hours.get("allotted" + key)} | {subject.__getattribute__("allotted" + key)}"""
                     }
                 )
 
