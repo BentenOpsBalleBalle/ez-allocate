@@ -156,27 +156,12 @@ class CommitLTPSerializer(AllotmentSerializer):
         allotted_tutorial_hours: int = data.setdefault("allotted_tutorial_hours", 0)
         allotted_practical_hours: int = data.setdefault("allotted_practical_hours", 0)
 
-        if len(
-            instance_list := Allotment.objects.filter(subject=subject, teacher=teacher)
-        ) == 1:
-            __current_instance = instance_list[0]
-
-            current_instance_hours = {
-                "allotted_lecture_hours": __current_instance.allotted_lecture_hours,
-                "allotted_tutorial_hours": __current_instance.allotted_tutorial_hours,
-                "allotted_practical_hours": __current_instance.allotted_practical_hours
-            }
-        else:
-            current_instance_hours = {
-                "allotted_lecture_hours": 0,
-                "allotted_tutorial_hours": 0,
-                "allotted_practical_hours": 0
-            }
+        current_instance_hours = self.__get_current_instance_hours(subject, teacher)
 
         total_hours = (
             allotted_lecture_hours + allotted_practical_hours + allotted_tutorial_hours +
-            # subtract current instance's hours from the total hours
             -sum(current_instance_hours.values())
+            # subtract current instance's hours from the total hours
         )
 
         # validate if hours are feasible by the teacher
@@ -190,8 +175,8 @@ class CommitLTPSerializer(AllotmentSerializer):
         # allotted L, T, P should be less than the subject's limits
         keys = ("_lecture_hours", "_tutorial_hours", "_practical_hours")
 
-        # get available subject hours
         for key in keys:
+            # get available subject hours
             available_hours = (
                 subject.__getattribute__("total" + key) +
                 current_instance_hours.get("allotted" + key) -
@@ -226,6 +211,28 @@ class CommitLTPSerializer(AllotmentSerializer):
                         }
                     )
         return data
+
+    def __get_current_instance_hours(self, subject: Subject, teacher: Teacher):
+        """
+        returns the current Allotment instance's hours if they exist, otherwise 0 filled dictioary
+        """
+        if len(
+            instance_list := Allotment.objects.filter(subject=subject, teacher=teacher)
+        ) == 1:
+            __current_instance = instance_list[0]
+
+            current_instance_hours = {
+                "allotted_lecture_hours": __current_instance.allotted_lecture_hours,
+                "allotted_tutorial_hours": __current_instance.allotted_tutorial_hours,
+                "allotted_practical_hours": __current_instance.allotted_practical_hours
+            }
+        else:
+            current_instance_hours = {
+                "allotted_lecture_hours": 0,
+                "allotted_tutorial_hours": 0,
+                "allotted_practical_hours": 0
+            }
+        return current_instance_hours
 
     def is_empty_allotment(self) -> bool:
         """
