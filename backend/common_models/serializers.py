@@ -140,6 +140,16 @@ class CommitLTPSerializer(AllotmentSerializer):
     class Meta(AllotmentSerializer.Meta):
         pass
 
+    def validate_teacher(self, value):
+        """
+        check that the teacher being added is in the Choices list
+        """
+        subject_pk = self.get_initial().get("subject", "")
+        if not Choices.objects.filter(teacher=value, subject__pk=subject_pk).exists():
+            raise serializers.ValidationError("this teacher is not added into the choices")
+
+        return value
+
     def validate(self, data: OrderedDict):
         """
         Validates whether the submitted LTP hours are:
