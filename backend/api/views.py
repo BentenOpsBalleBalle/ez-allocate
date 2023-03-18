@@ -1,5 +1,8 @@
+from typing import Union
+
 from common_models import serializers
 from common_models.models import Allotment, Choices, Subject, Teacher
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status, viewsets
@@ -197,4 +200,75 @@ class TeacherViewSet(viewsets.ReadOnlyModelViewSet):
         """
         queryset = Allotment.objects.filter(teacher__pk=pk)
         serializer = serializers.TeacherAllotmentSetSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+class SearchViewSet(viewsets.ViewSet):
+    """
+    This viewset provides a search API for teachers and subjects models
+    """
+
+    def __search(self, model: Union[Teacher, Subject], query="", fields=[], limit=10):
+        """
+        An internal abstracted method that provides the filter based on the fields
+        to search on and returns the query result
+
+        search is done using `icontains` filter and OR-ed with all the other
+        fields provided
+        """
+        q_args = []
+        for field in fields:
+            q = Q(**{field + "__icontains": query})
+            if not q_args:
+                q_args.append(q)
+            else:
+                q_args[0] |= q  # OR-ing the Q() object conditions
+
+        return model.objects.filter(*[q_args[0]])[:limit]
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='q',
+                description='the search query',
+                required=True,
+                type=str,
+                location="query"
+            )
+        ],
+        responses=serializers.SubjectListSerializer(many=True)
+    )
+    @action(detail=False)
+    def subjects(self, request):
+        """
+        returns a set of results on subjects that match the query provided.
+
+        Searches over the fields: `name`, `course_code`
+        """
+        query = request.query_params.get("q", "")
+        data = self.__search(model=Subject, query=query, fields=["name", "course_code"])
+        serializer = serializers.SubjectListSerializer(data, many=True)
+        return Response(serializer.data)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='q',
+                description='the search query',
+                required=True,
+                type=str,
+            )
+        ],
+        responses=serializers.TeacherSerializer(many=True)
+    )
+    @action(detail=False)
+    def teachers(self, request):
+        """
+        returns a set of results on teachers that match the query provided.
+
+        Searches over the fields: `name`, `email`
+        """
+        query = request.query_params.get("q", "")
+        data = self.__search(Teacher, query, ["name", "email"])
+        serializer = serializers.TeacherSerializer(data, many=True)
         return Response(serializer.data)
