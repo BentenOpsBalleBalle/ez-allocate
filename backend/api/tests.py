@@ -469,3 +469,28 @@ class CommitLTPValidatorTest(APITestCase):
         }
         response = self.client.post(url, format="json", data=data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_deleting_a_manual_teacher_deletes_allotment(self):
+        subject1 = Subject(
+            name="subject1",
+            course_code="sub1",
+            credits=3,
+            course_type=Subject.CourseType.CORE,
+            original_lecture_hours=1,
+            original_tutorial_hours=1,
+            original_practical_hours=2,
+            number_of_lecture_batches=2,
+            number_of_practical_or_tutorial_batches=6
+        )
+        subject1.save()
+        self.assertEqual(Allotment.objects.count(), 0)
+
+        response = self.call_api(allotted_practical=2)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Allotment.objects.count(), 1)
+
+        # now remove the manually added teacher
+        url = reverse("subjects-choices-modify", args=[1, 1])
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Allotment.objects.count(), 0)
