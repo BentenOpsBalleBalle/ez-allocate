@@ -5,7 +5,7 @@ import FetchingIndicator from "../components/common/FetchingIndicator";
 import { Pagination } from "../components/common/Pagination";
 import { Drawer } from "@geist-ui/core";
 import { FiSearch } from "react-icons/fi";
-import SubjectCard from "../components/SubjectCard";
+import SubjectCard from "../components/Subject Components/SubjectCard";
 import { CustomSearch } from "../components/common/CustomSearch";
 import { useNavigate } from "react-router-dom";
 
