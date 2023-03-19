@@ -1,7 +1,0 @@
-input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    height: 12px;
-    width: 12px;
-    border-radius: 999px;
-    background-color: rgb(233, 196, 65);
-}

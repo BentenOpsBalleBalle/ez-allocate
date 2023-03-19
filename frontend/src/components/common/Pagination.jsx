@@ -1,3 +1,4 @@
+import { Spinner } from "@geist-ui/core";
 export function Pagination({ setPage, page, query }) {
     return (
         <div className="w-screen flex items-center justify-around mt-6 ">
@@ -10,9 +11,9 @@ export function Pagination({ setPage, page, query }) {
             >
                 Prev
             </button>
-            <p>
-                Page {page} {query.isFetching ? "..." : ""}
-            </p>
+            <div className="flex gap-x-2 items-center">
+                Page {page} {query.isFetching ? <Spinner /> : ""}
+            </div>
             <button
                 className="bg-black text-white px-4 py-2 rounded-md cursor-pointer disabled:bg-red-600 disabled:cursor-not-allowed"
                 onClick={() => {

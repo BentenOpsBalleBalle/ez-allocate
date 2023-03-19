@@ -1,26 +1,38 @@
+//if the query is fresh then it wont be refetched when component re renders
+
 import setColor from "../../helpers/SetColor";
-import { useState } from "react";
-import "./test.css";
+import { useState, useEffect } from "react";
+import getChoiceColor from "../../helpers/getChoiceColor";
+import { TiDelete } from "react-icons/ti";
+import Client from "../../helpers/Client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import getCurrentAllotmentData from "../../helpers/getCurrentAllotmentData";
+import {
+    Slider,
+    Button,
+    Card,
+    Divider,
+    Avatar,
+    useToasts,
+    Loading,
+    Tooltip,
+} from "@geist-ui/core";
+import { RiErrorWarningFill } from "react-icons/ri";
+
+const client = new Client();
 
 const AssignTeacherCard = ({ choice_number, teacher, subjectData }) => {
-    // console.log(subjectData);
-    // const subjectMaxHours = {
-    //     lecture: subjectData.original_lecture_hours,
-    //     tutorial: subjectData.original_tutorial_hours,
-    //     practical: subjectData.original_practical_hours,
-    // };
+    const queryClient = useQueryClient();
+    const { setToast } = useToasts();
+    // console.log(teacher);
 
-    const subjectLeftHours = {
-        lecture:
-            subjectData.original_lecture_hours -
-            subjectData.allotted_lecture_hours,
-        tutorial:
-            subjectData.original_tutorial_hours -
-            subjectData.allotted_tutorial_hours,
-        practical:
-            subjectData.original_practical_hours -
-            subjectData.allotted_practical_hours,
+    const subjectMaxHours = {
+        lecture: subjectData.total_lecture_hours,
+        tutorial: subjectData.total_tutorial_hours,
+        practical: subjectData.total_practical_hours,
     };
+
+    // console.log(teacher.name, choice_number);
 
     // console.log(subjectLeftHours, "subjectLeftHours");
     const [lecture, setLecture] = useState(0);
@@ -28,6 +40,15 @@ const AssignTeacherCard = ({ choice_number, teacher, subjectData }) => {
     const [practical, setPractical] = useState(0);
 
     // console.log(setColor(teacher.assigned_status));
+    const teacherAllotmentsQuery = useQuery(
+        ["teachers", teacher.id, "allotments"],
+        () =>
+            client.createUrl({
+                url: `api/teachers/${teacher.id}/allotments`,
+                method: "GET",
+                service: "allocate",
+            })
+    );
 
     const MODES = {
         L: {
@@ -47,31 +68,133 @@ const AssignTeacherCard = ({ choice_number, teacher, subjectData }) => {
         },
     };
 
-    // function handleMinus(label, setState) {
-    //     setState((prev) => {
-    //         if (prev === 0) return 0;
-    //         return prev - 1;
-    //     });
-    // }
+    const removeTeacherMutation = useMutation(
+        () =>
+            client.createUrl({
+                url: `api/subjects/${subjectData.id}/choices/modify/${teacher.id}/`,
+                method: "DELETE",
+                service: "allocate",
+            }),
+        {
+            onSuccess: (data) => {
+                queryClient.refetchQueries(
+                    ["subjects", subjectData.id, "choices"],
+                    { exact: true }
+                );
+                // const successToast = (type) =>
+                setToast({
+                    text: "Teacher was successfully removed",
+                    type: "success",
+                });
 
-    // function handlePlus(label, setState) {
-    //     setState((prev) => {
-    //         // console.log(subjectMaxHours[label.toString().toLowerCase()]);
-    //         if (prev >= subjectMaxHours[label.toString().toLowerCase()])
-    //             return prev;
-    //         return prev + 1;
-    //     });
-    // }
+                // successToast("success");
+            },
+
+            onError: (error) => {
+                setToast({
+                    text: error.response.data.detail,
+                    type: "error",
+                });
+            },
+        }
+    );
+
+    const assignTeacher = useMutation(
+        (allottmentData) => {
+            return client.createUrl({
+                url: `api/subjects/${subjectData.id}/commit_ltp/`,
+                method: "POST",
+                service: "allocate",
+                body: allottmentData,
+            });
+        },
+        {
+            onSuccess: (data) => {
+                // queryClient.refetchQueries(
+                //     ["subjects", subjectData.id],
+                //     {
+                //         exact: true,
+                //     }
+                // );
+                queryClient.refetchQueries(
+                    ["teachers", teacher.id, "allotments"],
+                    { exact: true }
+                );
+                queryClient.refetchQueries(
+                    ["subjects", subjectData.id, "choices"],
+                    { exact: true }
+                );
+            },
+            onError: (error) => {
+                console.log(error);
+            },
+        }
+    );
+    const handleAssignTeacher = async () => {
+        assignTeacher.mutate({
+            allotted_lecture_hours: lecture,
+            allotted_tutorial_hours: tutorial,
+            allotted_practical_hours: practical,
+            teacher: teacher.id,
+        });
+
+        console.log("yuhuuu");
+    };
 
     return (
-        <div className="w-56 bg-gray-100 p-4 rounded-lg drop-shadow-md ">
-            <div className="flex items-center gap-x-8">
-                <img
+        // <div
+        //     className={` bg-[${getChoiceColor(
+        //         choice_number
+        //     )}]  w-64 p-4 rounded-lg drop-shadow-md relative`}
+        // >
+        <Card
+            width="250px"
+            style={{
+                backgroundColor: getChoiceColor(choice_number),
+                position: "relative",
+            }}
+        >
+            {/* <div>{teacher.id}</div> */}
+            <div className="absolute top-0 right-0 flex  z-10">
+                <div className="mt-[4px] mr-1 self-center">
+                    {teacherAllotmentsQuery.isLoading ||
+                    teacherAllotmentsQuery.data?.data.length < 2 ? null : (
+                        <div>
+                            <Tooltip
+                                type="warning"
+                                trigger="click"
+                                text={`${teacherAllotmentsQuery.data.data.length} subjects alloted`}
+                            >
+                                <RiErrorWarningFill className="text-black text-lg cursor-pointer" />
+                            </Tooltip>
+                        </div>
+                    )}
+                </div>
+                <div className="self-center">
+                    {choice_number === 0 && (
+                        <TiDelete
+                            onClick={() => removeTeacherMutation.mutate()}
+                            className=" text-red-400  text-xl cursor-pointer"
+                        />
+                    )}
+                </div>
+            </div>
+
+            <div className="flex items-center justify-between gap-x-">
+                {/* <img
                     className="rounded-full w-[60px] h-[60px]"
                     src={`https://api.dicebear.com/5.x/initials/svg?seed=${
                         teacher.name
                     }&backgroundColor=${setColor(teacher.assigned_status)}`}
                     alt={teacher.name}
+                /> */}
+                <Avatar
+                    src={`https://api.dicebear.com/5.x/initials/svg?seed=${
+                        teacher.name
+                    }&backgroundColor=${setColor(teacher.assigned_status)}`}
+                    alt={teacher.name}
+                    width={2}
+                    height={2}
                 />
                 <div>
                     <div>{teacher.name}</div>
@@ -80,93 +203,113 @@ const AssignTeacherCard = ({ choice_number, teacher, subjectData }) => {
                 </div>
             </div>
             {/* {console.log(buttons["L"])} */}
-            <div className="mt-2 flex flex-col gap-y-2">
+            <Divider h="2px" my="10px" type="success" />
+            <div className="mt-2.5 flex flex-col gap-y-2">
                 {teacher.preferred_mode.split("").map((mode, idx) => {
                     return (
-                        <div className="flex justify-between" key={idx}>
+                        <div
+                            className="flex justify-between items-center"
+                            key={idx}
+                        >
                             <div>{MODES[mode].label}</div>
-                            <Slider
-                                min={0}
-                                max={
-                                    subjectLeftHours[
-                                        MODES[mode].label
-                                            .toString()
-                                            .toLowerCase()
-                                    ]
-                                }
-                                value={MODES[mode].state}
-                                setState={MODES[mode].setState}
-                            />
-                            {/* <div className="flex gap-x-2 items-center bg-white">
-                                <button
-                                    className="bg-black text-white px-2 py-1 rounded-md"
-                                    onClick={() =>
-                                        handleMinus(
-                                            MODES[mode].state,
-                                            MODES[mode].setState
-                                        )
-                                    }
-                                >
-                                    -
-                                </button>
-                                <div>{[MODES[mode].state]}</div>
-                                <button
-                                    className="bg-black text-white px-2 py-1 rounded-md"
-                                    onClick={() =>
-                                        handlePlus(
-                                            MODES[mode].label,
-                                            MODES[mode].setState
-                                        )
-                                    }
-                                >
-                                    +
-                                </button>
-                            </div> */}
+                            {teacherAllotmentsQuery.isLoading ? (
+                                <Loading type="success" />
+                            ) : (
+                                <>
+                                    {/* {console.log(
+                                        teacherAllotmentsQuery.data.data
+                                    )} */}
+                                    <SliderComp
+                                        min={0}
+                                        max={
+                                            subjectMaxHours[
+                                                MODES[mode].label
+                                                    .toString()
+                                                    .toLowerCase()
+                                            ]
+                                        }
+                                        step={
+                                            MODES[mode].label === "Practical"
+                                                ? 2
+                                                : 1
+                                        }
+                                        value={MODES[mode].state}
+                                        setState={MODES[mode].setState}
+                                        teacherAllotmentsQuery={
+                                            teacherAllotmentsQuery
+                                        }
+                                        subjectId={subjectData.id}
+                                        mode={mode}
+                                    />
+                                </>
+                            )}
                         </div>
                     );
                 })}
             </div>
 
-            <div
-                onClick={() => {
-                    console.log(lecture, tutorial, practical);
-                }}
+            {/* <div
+                onClick={handleAssignTeacher}
                 className="mt-2 text-center bg-green-400 rounded-[5px] py-1 cursor-pointer"
             >
                 <button>Assign</button>
-            </div>
-        </div>
+            </div> */}
+            <Button
+                width="100%"
+                mt="10px"
+                onClick={handleAssignTeacher}
+                type="success-light"
+                loading={teacherAllotmentsQuery.isLoading}
+            >
+                Assign
+            </Button>
+            {/* // </div> */}
+        </Card>
     );
 };
 
-const Slider = ({ min, max, value, setState }) => {
-    const handleOnChange = (event) => {
-        const newValue = parseInt(event.target.value, 10);
+const SliderComp = ({
+    min,
+    max,
+    value,
+    setState,
+    step,
+    teacherAllotmentsQuery,
+    subjectId,
+    mode,
+}) => {
+    const handleOnChange = (val) => {
+        const newValue = parseInt(val, 10);
         setState(newValue);
     };
+
+    useEffect(() => {
+        const val = getCurrentAllotmentData(
+            teacherAllotmentsQuery.data.data,
+            subjectId,
+            mode
+        );
+        setState(val);
+        // console.log(val, "val");
+    }, [teacherAllotmentsQuery.data.data]);
 
     const handleOnMouseMove = (event) => {
         const currentValue = parseInt(event.target.value, 10);
         event.target.title = currentValue;
     };
     return (
-        <div className="flex items-center gap-x-2">
-            <span className="">{min}</span>
-            <input
-                type="range"
+        <>
+            <Slider
+                initialValue={value}
+                value={value}
                 min={min}
                 max={max}
-                value={value}
+                step={step}
                 onChange={handleOnChange}
-                onMouseMove={handleOnMouseMove}
-                className={` ${
-                    min == max
-                        ? "bg-black ok"
-                        : "bg-green-300 hover:bg-green-500"
-                } w-20 h-1  appearance-none rounded-full   outline-none cursor-pointer`}
+                width="100px"
+                disabled={min == max}
             />
-            <span className="">{max}</span>
-        </div>
+        </>
     );
 };
 

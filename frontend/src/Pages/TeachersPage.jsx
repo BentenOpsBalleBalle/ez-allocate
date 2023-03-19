@@ -5,14 +5,15 @@ import { Pagination } from "../components/common/Pagination";
 import FetchingIndicator from "../components/common/FetchingIndicator";
 import { useNavigate } from "react-router-dom";
 import setColor from "../helpers/setColor";
-import axios from "axios";
+// import axios from "axios";
 
 const client = new Client();
 
 const getTeachers = async (page) => {
     return await client.createUrl({
-        url: `http://localhost:3000/teachers?page=${page}&limit=8`,
+        url: `api/teachers/?page=${page}`,
         method: "GET",
+        service: "allocate",
     });
 };
 
@@ -45,13 +46,14 @@ function TeachersPage() {
 
             {teachersQuery.isLoading ? null : (
                 <div className="flex mt-6 flex-wrap gap-8  justify-center">
-                    {teachersQuery.data.data.map((teacher) => (
+                    {console.log(teachersQuery.data)}
+                    {teachersQuery.data.data.results.map((teacher) => (
                         <TeacherCard
-                            key={teacher.id.$oid}
+                            key={teacher.id}
                             name={teacher.name}
                             assigned_status={teacher.assigned_status}
-                            preffered_mode={teacher.preffered_mode}
-                            id={teacher.id.$oid}
+                            preferred_mode={teacher.preferred_mode}
+                            id={teacher.id}
                         />
                     ))}
                 </div>
@@ -61,7 +63,7 @@ function TeachersPage() {
     );
 }
 
-function TeacherCard({ name, preffered_mode, id, assigned_status }) {
+function TeacherCard({ name, preferred_mode, id, assigned_status }) {
     const navigate = useNavigate();
     const handleClick = () => {
         navigate(`/teachers/${id}`);
@@ -82,13 +84,13 @@ function TeacherCard({ name, preffered_mode, id, assigned_status }) {
             <div className="text-l font-sans font-bold ml-2">{name}</div>
             <div className="flex  items-center text-center">
                 <div className="w-8 h-8 rounded-full bg-red-100">
-                    {preffered_mode[0]}
+                    {preferred_mode[0]}
                 </div>
                 <div className="w-8 h-8 rounded-full bg-red-100">
-                    {preffered_mode[1]}
+                    {preferred_mode[1]}
                 </div>
                 <div className="w-8 h-8 rounded-full bg-red-100">
-                    {preffered_mode[2]}
+                    {preferred_mode[2]}
                 </div>
             </div>
         </div>
