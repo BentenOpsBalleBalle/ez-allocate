@@ -51,7 +51,7 @@ class AllotmentModelRelationShipTest(TestCase):
         cls.subject2.save()
 
         cls.teacher1 = Teacher(name="john")
-        cls.teacher2 = Teacher(name="doe")
+        cls.teacher2 = Teacher(name="doe", email="doe@doe.doe")
         cls.teacher1.save()
         cls.teacher2.save()
 
@@ -214,7 +214,7 @@ class ComputedStatusFieldTest(TestCase):
         cls.subject3.save()
 
         cls.teacher1 = Teacher(name="john")
-        cls.teacher2 = Teacher(name="doe")
+        cls.teacher2 = Teacher(name="doe", email="doe@doe.doe")
         cls.teacher1.save()
         cls.teacher2.save()
 

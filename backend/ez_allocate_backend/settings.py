@@ -55,6 +55,31 @@ SPECTACULAR_SETTINGS = {
     }
 }
 
+# LOGS: SETTINGS
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose'
+        },
+    },
+    'loggers': {
+        'common_models': {
+            'handlers': ['console'],
+        }
+    },
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} - [{asctime}]:[{name}] {message}',
+            'datefmt': '%d/%M/%Y %H:%M:%S',
+            'style': '{',
+        }
+    },
+
+}
+
 # Application definition
 
 INSTALLED_APPS = [
