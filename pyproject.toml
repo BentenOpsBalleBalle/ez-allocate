@@ -1,0 +1,21 @@
+[pycodestyle]
+count = true
+ignore = "E226,E302,E41"
+max-line-length = 120
+statistics = true
+
+[flake8]
+max-line-length = 120
+exclude = ".git,__pycache__"
+
+[tool.yapf]
+COLUMN_LIMIT = 92
+ARITHMETIC_PRECEDENCE_INDICATION = true
+ALLOW_SPLIT_BEFORE_DICT_VALUE = true
+COALESCE_BRACKETS = false
+SPLIT_BEFORE_LOGICAL_OPERATOR = false
+DEDENT_CLOSING_BRACKETS = true
+
+[isort]
+line_length = 79
+balanced_wrapping = true

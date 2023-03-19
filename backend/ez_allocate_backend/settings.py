@@ -9,13 +9,13 @@ https://docs.djangoproject.com/en/4.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
-
+from os import getenv
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
+# yapf: disable
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
@@ -27,10 +27,68 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# CUSTOM SETTINGS
+CUSTOM_SETTINGS = {
+    "MANUAL_CHOICE_NUMBER": 0,
+    "MAX_TEACHER_WORKLOAD_HOURS": 14
+}
+
+# CORS SETTINGS
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173"
+]
+
+# REST FRAMEWORK SETTINGS
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+# DOCS: SPECTACULAR SETTINGS
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'ez-allocate API docs',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'ENUM_NAME_OVERRIDES': {
+        'AssignedStatusEnum': 'common_models.models.AllotmentStatus',
+        'AllotmentStatusEnum': 'common_models.models.AllotmentStatus',
+    }
+}
+
+# LOGS: SETTINGS
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose'
+        },
+    },
+    'loggers': {
+        'common_models': {
+            'handlers': ['console'],
+        }
+    },
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} - [{asctime}]:[{name}] {message}',
+            'datefmt': '%d/%M/%Y %H:%M:%S',
+            'style': '{',
+        }
+    },
+
+}
 
 # Application definition
 
 INSTALLED_APPS = [
+    'common_models',
+    'api',
+    'tasks',
+    'rest_framework',
+    'corsheaders',
+    'drf_spectacular',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -40,6 +98,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -76,7 +135,10 @@ WSGI_APPLICATION = 'ez_allocate_backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': BASE_DIR / ('mock-db.sqlite3'
+                            if getenv("USE_MOCK_DB", "False").lower() in ('true', '1')
+                            else 'db.sqlite3'
+                            ),
     }
 }
 
