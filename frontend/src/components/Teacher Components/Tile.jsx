@@ -11,20 +11,22 @@ function Tile({ allotment }) {
         >
             <div className="button  aria-expanded={isOpen} cursor-pointer flex justify-between items-center w-full">
                 <div className="bg-cyan-500 shadow-lg shadow-cyan-500/50 p-4 rounded-l text-white">
-                    {allotment.subject_id}
+                    {allotment.subject.course_code}
                 </div>
                 <div className="text-[20px] pl-2 font-semibold">
-                    Operating System
+                    {allotment.subject.name}
                 </div>
                 <div className="text-[22px] pl-2 font-semibold text-orange-700">
-                    8
+                    {allotment.allotted_lecture_hours +
+                        allotment.allotted_tutorial_hours +
+                        allotment.allotted_practical_hours}
                 </div>
             </div>
             {Open ? (
                 <DropDown
-                    lecture={allotment.alloted_lecture}
-                    practical={allotment.alloted_practical}
-                    tutorial={allotment.alloted_tutorial}
+                    lecture={allotment.allotted_lecture_hours}
+                    practical={allotment.allotted_tutorial_hours}
+                    tutorial={allotment.allotted_practical_hours}
                 />
             ) : null}
         </div>
