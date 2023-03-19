@@ -3,22 +3,26 @@ import { useState } from "react";
 import Client from "../helpers/Client";
 import FetchingIndicator from "../components/common/FetchingIndicator";
 import { Pagination } from "../components/common/Pagination";
-
+import { Drawer } from "@geist-ui/core";
+import { FiSearch } from "react-icons/fi";
 import SubjectCard from "../components/SubjectCard";
+import { CustomSearch } from "../components/common/CustomSearch";
+import { useNavigate } from "react-router-dom";
 
-const client = new Client();
+export const client = new Client();
 
-const getSubjects = async (page) => {
-    return await client.createUrl({
-        url: `http://localhost:3000/test?page=${page}&limit=8`,
-        method: "GET",
-    });
-};
 function SubjectsPage() {
+    const navigate = useNavigate();
     const [page, setPage] = useState(1);
+    const [search, setSearch] = useState(false);
     const subjectsQuery = useQuery(
         ["subjects", { page }],
-        () => getSubjects(page),
+        () =>
+            client.createUrl({
+                url: `api/subjects/?page=${page}`,
+                method: "GET",
+                service: "allocate",
+            }),
         {
             keepPreviousData: true,
         }
@@ -42,32 +46,62 @@ function SubjectsPage() {
                     <div className="flex gap-x-4">
                         <div className="flex gap-x-2 items-center">
                             <div className="w-5 h-5 bg-red-400 rounded-sm" />
-                            <div>No teachers available</div>
+                            <div>NONE</div>
                         </div>
                         <div className="flex gap-x-2 items-center">
                             <div className="w-5 h-5 bg-green-400 rounded-sm" />
-                            <div>Subject Alloted</div>
+                            <div>FULL</div>
                         </div>
                         <div className="flex gap-x-2 items-center">
                             <div className="w-5 h-5 bg-yellow-400 rounded-sm" />
-                            <div>Subject to be alloted</div>
+                            <div>PARTIAL</div>
                         </div>
                     </div>
                 </div>
 
-                <div className="border border-blue-300 bg-blue-700 text-white font-mono text-xl font-bold rounded-lg px-3 py-1 cursor-pointer">
-                    Teachers
+                <Drawer
+                    visible={search}
+                    onClose={() => setSearch(false)}
+                    placement="right"
+
+                    // height="100%"
+                >
+                    <Drawer.Title>Search</Drawer.Title>
+                    <Drawer.Subtitle>Look for subject</Drawer.Subtitle>
+                    <Drawer.Content>
+                        <CustomSearch
+                            searchFor="subjects"
+                            onSelect={(value) => {
+                                console.log(value);
+                                navigate(`/subjects/${value}`);
+                            }}
+                            width="400px"
+                        />
+                    </Drawer.Content>
+                </Drawer>
+                <div className="flex items-center ">
+                    <span
+                        className="mr-6 text-2xl cursor-pointer"
+                        onClick={() => setSearch(true)}
+                    >
+                        <FiSearch />
+                    </span>
+                    <div className="border border-blue-300 bg-blue-700 text-white font-mono text-xl font-bold rounded-lg px-3 py-1 cursor-pointer">
+                        Teachers
+                    </div>
                 </div>
             </div>
 
             {subjectsQuery.isLoading ? null : (
                 <div className="flex mt-6 flex-wrap gap-8  justify-center">
-                    {subjectsQuery.data.data.map((subject) => (
+                    {/* {console.log(subjectsQuery.data)} */}
+                    {subjectsQuery.data.data.results.map((subject) => (
                         <SubjectCard
-                            key={subject._id.$oid}
+                            key={subject.id}
                             name={subject.name}
                             allotmentStatus={subject.allotment_status}
                             id={subject.id}
+                            course_code={subject.course_code}
                         />
                     ))}
                 </div>
