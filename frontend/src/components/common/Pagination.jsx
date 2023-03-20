@@ -22,7 +22,9 @@ export function Pagination({ setPage, page, query }) {
                     }
                 }}
                 disabled={
-                    query.data?.data?.length === 0 || query.isPreviousData
+                    query.data?.data?.length === 0 ||
+                    query.isPreviousData ||
+                    query.data?.data?.next === null
                 }
             >
                 Next
