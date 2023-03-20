@@ -4,7 +4,11 @@ import { useState } from "react";
 import { Pagination } from "../components/common/Pagination";
 import FetchingIndicator from "../components/common/FetchingIndicator";
 import { useNavigate } from "react-router-dom";
-import setColor from "../helpers/setColor";
+import { Drawer } from "@geist-ui/core";
+import { FiSearch } from "react-icons/fi";
+import { CustomSearch } from "../components/common/CustomSearch";
+import { TeacherCard } from "../components/Teacher Components/TeacherCard";
+
 // import axios from "axios";
 
 const client = new Client();
@@ -19,6 +23,8 @@ const getTeachers = async (page) => {
 
 function TeachersPage() {
     const [page, setPage] = useState(1);
+    const [search, setSearch] = useState(false);
+    const navigate = useNavigate();
     const teachersQuery = useQuery(
         ["teachers", { page }],
         () => getTeachers(page),
@@ -39,14 +45,43 @@ function TeachersPage() {
 
     return (
         <div>
-            <div className="title text-[35px] ml-[30px] mr-[15px] font-bold flex items-center">
-                T E A C H E R S
-                <FetchingIndicator />
+            <div className="title text-[35px] ml-[30px] mr-[15px] font-bold flex justify-between items-center">
+                <div>
+                    T E A C H E R S
+                    <FetchingIndicator />
+                </div>
+
+                <div
+                    className="mr-12 text-2xl cursor-pointer"
+                    onClick={() => setSearch(true)}
+                >
+                    <FiSearch />
+                </div>
             </div>
+
+            <Drawer
+                visible={search}
+                onClose={() => setSearch(false)}
+                placement="right"
+
+                // height="100%"
+            >
+                <Drawer.Title>Search</Drawer.Title>
+                <Drawer.Subtitle>Look for teacher</Drawer.Subtitle>
+                <Drawer.Content>
+                    <CustomSearch
+                        searchFor="teachers"
+                        onSelect={(value) => {
+                            console.log(value);
+                            navigate(`/teachers/${value}`);
+                        }}
+                        width="400px"
+                    />
+                </Drawer.Content>
+            </Drawer>
 
             {teachersQuery.isLoading ? null : (
                 <div className="flex mt-6 flex-wrap gap-8  justify-center">
-                    {console.log(teachersQuery.data)}
                     {teachersQuery.data.data.results.map((teacher) => (
                         <TeacherCard
                             key={teacher.id}
@@ -59,34 +94,6 @@ function TeachersPage() {
                 </div>
             )}
             <Pagination setPage={setPage} page={page} query={teachersQuery} />
-        </div>
-    );
-}
-
-function TeacherCard({ name, preferred_mode, id, assigned_status }) {
-    const navigate = useNavigate();
-    const handleClick = () => {
-        navigate(`/teachers/${id}`);
-    };
-    return (
-        <div
-            onClick={handleClick}
-            className="w-72  border relative shadow-xl rounded-xl  flex flex-col gap-y-2 cursor-pointer"
-        >
-            <img
-                src={`https://api.dicebear.com/5.x/initials/svg?seed=${name}&backgroundColor=${setColor(
-                    assigned_status
-                )}`}
-                alt="login"
-                className="h-40 w-72 rounded-xl object-cover"
-            />
-
-            <div className="text-l font-sans font-bold ml-2">{name}</div>
-            <div className="flex gap-2 px-2 rounded-md bg-red-100 w-16 text-center m-2">
-                <div className="font-bold">{preferred_mode[0]}</div>
-                <div className="font-bold">{preferred_mode[1]}</div>
-                <div className="font-bold">{preferred_mode[2]}</div>
-            </div>
         </div>
     );
 }
