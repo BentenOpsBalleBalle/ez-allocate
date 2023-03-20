@@ -69,15 +69,15 @@ const Subject = () => {
                 <div className="text-2xl font-bold">Assign Teachers</div>
                 {/* {console.log(subjectQuery.data.data)} */}
                 <div className="flex gap-x-4">
-                    <Tag>
+                    <Tag invert>
                         {subjectQuery.data.data.allotted_lecture_hours}/
                         {subjectQuery.data.data.total_lecture_hours}
                     </Tag>
-                    <Tag>
+                    <Tag invert>
                         {subjectQuery.data.data.allotted_tutorial_hours}/
                         {subjectQuery.data.data.total_tutorial_hours}
                     </Tag>
-                    <Tag>
+                    <Tag invert>
                         {subjectQuery.data.data.allotted_practical_hours}/
                         {subjectQuery.data.data.total_practical_hours}
                     </Tag>
