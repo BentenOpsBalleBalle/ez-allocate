@@ -5,7 +5,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import AssignTeacherCard from "./Subject Components/AssignTeacherCard";
 import { useParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { Spinner, useToasts } from "@geist-ui/core";
+import { Spinner, useToasts, Tag } from "@geist-ui/core";
 import { CustomSearch } from "./common/CustomSearch";
 
 const client = new Client();
@@ -59,40 +59,44 @@ const Subject = () => {
         }
     );
 
-    // const addTeacher = async () => {
-    //     const resp = await client.createUrl({
-    //         url: `api/subjects/${id}/choices/modify/${1}/`,
-    //         method: "POST",
-    //         service: "allocate",
-    //     });
-    //     console.log(resp);
-    //     queryClient.invalidateQueries(["subjects", id, "choices"], {
-    //         exact: true,
-    //     });
-    // };
-
-    // const choiceLabels = {};
     const { isLoading, error } = subjectQuery;
     if (isLoading) return <div>Loading..</div>;
     if (error) return <div>Error: {error.message}</div>;
+    console.log(subjectQuery.data.data);
     return (
-        <div>
-            <div>Assign teachers to {subjectQuery.data.data.name}</div>
-            {/* {console.log(subjectQuery.data.data)} */}
-            <div>{subjectQuery.data.data.total_lecture_hours} lecture</div>
-            <div>{subjectQuery.data.data.total_tutorial_hours} tutorial</div>
-            <div>{subjectQuery.data.data.total_practical_hours} practical</div>
-            <CustomSearch
-                searchFor="teachers"
-                onSelect={(value) => {
-                    addTeacherMutation.mutate(value);
-                }}
-                width="300px"
-            />
+        <div className="w-screen px-4">
+            <div className="flex justify-between items-center pt-2 w-full">
+                <div className="text-2xl font-bold">Assign Teachers</div>
+                {/* {console.log(subjectQuery.data.data)} */}
+                <div className="flex gap-x-4">
+                    <Tag>
+                        {subjectQuery.data.data.allotted_lecture_hours}/
+                        {subjectQuery.data.data.total_lecture_hours}
+                    </Tag>
+                    <Tag>
+                        {subjectQuery.data.data.allotted_tutorial_hours}/
+                        {subjectQuery.data.data.total_tutorial_hours}
+                    </Tag>
+                    <Tag>
+                        {subjectQuery.data.data.allotted_practical_hours}/
+                        {subjectQuery.data.data.total_practical_hours}
+                    </Tag>
+                </div>
+                <div className="mr-2 border-2 border-black rounded-[7px]">
+                    <CustomSearch
+                        searchFor="teachers"
+                        onSelect={(value) => {
+                            addTeacherMutation.mutate(value);
+                        }}
+                        width="250px"
+                    />
+                </div>
+            </div>
+
             {choiceQuery.isLoading ? (
                 <Spinner />
             ) : (
-                <div>
+                <div className="mt-4">
                     <div className="flex gap-8 flex-wrap">
                         {choiceQuery.data.data.map((choice) => {
                             return (
