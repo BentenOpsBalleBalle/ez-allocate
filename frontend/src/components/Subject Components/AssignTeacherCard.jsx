@@ -1,6 +1,6 @@
 //if the query is fresh then it wont be refetched when component re renders
 
-import setColor from "../../helpers/SetColor";
+import setColor from "../../helpers/setColor.js";
 import { useState, useEffect } from "react";
 import { TiDelete } from "react-icons/ti";
 import Client from "../../helpers/Client";
