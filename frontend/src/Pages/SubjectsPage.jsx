@@ -86,7 +86,10 @@ function SubjectsPage() {
                     >
                         <FiSearch />
                     </span>
-                    <div className="border border-blue-300 bg-blue-700 text-white font-mono text-xl font-bold rounded-lg px-3 py-1 cursor-pointer">
+                    <div
+                        onClick={() => navigate("/teachers")}
+                        className="border border-blue-300 bg-blue-700 text-white font-mono text-xl font-bold rounded-lg px-3 py-1 cursor-pointer"
+                    >
                         Teachers
                     </div>
                 </div>
