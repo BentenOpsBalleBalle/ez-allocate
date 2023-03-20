@@ -16,6 +16,7 @@ import {
     useToasts,
     Loading,
     Tooltip,
+    Badge,
 } from "@geist-ui/core";
 import { RiErrorWarningFill } from "react-icons/ri";
 
@@ -110,12 +111,9 @@ const AssignTeacherCard = ({ choice_number, teacher, subjectData }) => {
         },
         {
             onSuccess: (data) => {
-                // queryClient.refetchQueries(
-                //     ["subjects", subjectData.id],
-                //     {
-                //         exact: true,
-                //     }
-                // );
+                queryClient.refetchQueries(["subjects", subjectData.id], {
+                    exact: true,
+                });
                 queryClient.refetchQueries(
                     ["teachers", teacher.id, "allotments"],
                     { exact: true }
@@ -142,129 +140,128 @@ const AssignTeacherCard = ({ choice_number, teacher, subjectData }) => {
     };
 
     return (
-        // <div
-        //     className={` bg-[${getChoiceColor(
-        //         choice_number
-        //     )}]  w-64 p-4 rounded-lg drop-shadow-md relative`}
-        // >
-        <Card
-            width="250px"
-            style={{
-                backgroundColor: getChoiceColor(choice_number),
-                position: "relative",
-            }}
-        >
-            {/* <div>{teacher.id}</div> */}
-            <div className="absolute top-0 right-0 flex  z-10">
-                <div className="mt-[4px] mr-1 self-center">
-                    {teacherAllotmentsQuery.isLoading ||
-                    teacherAllotmentsQuery.data?.data.length < 2 ? null : (
-                        <div>
-                            <Tooltip
-                                type="warning"
-                                trigger="click"
-                                text={`${teacherAllotmentsQuery.data.data.length} subjects alloted`}
-                            >
-                                <RiErrorWarningFill className="text-black text-lg cursor-pointer" />
-                            </Tooltip>
-                        </div>
-                    )}
+        <Badge.Anchor placement="topLeft">
+            <Badge scale={0.5}>{choice_number}</Badge>
+            <Card
+                width="250px"
+                style={{
+                    backgroundColor: getChoiceColor(choice_number),
+                    position: "relative",
+                }}
+            >
+                {/* <div>{teacher.id}</div> */}
+                <div className="absolute top-0 right-0 flex  z-10">
+                    <div className="mt-[4px] mr-1 self-center">
+                        {teacherAllotmentsQuery.isLoading ||
+                        teacherAllotmentsQuery.data?.data.length < 2 ? null : (
+                            <div>
+                                <Tooltip
+                                    type="warning"
+                                    trigger="click"
+                                    text={`${teacherAllotmentsQuery.data.data.length} subjects alloted`}
+                                >
+                                    <RiErrorWarningFill className="text-black text-lg cursor-pointer" />
+                                </Tooltip>
+                            </div>
+                        )}
+                    </div>
+                    <div className="self-center">
+                        {choice_number === 0 && (
+                            <TiDelete
+                                onClick={() => removeTeacherMutation.mutate()}
+                                className=" text-red-400  text-xl cursor-pointer"
+                            />
+                        )}
+                    </div>
                 </div>
-                <div className="self-center">
-                    {choice_number === 0 && (
-                        <TiDelete
-                            onClick={() => removeTeacherMutation.mutate()}
-                            className=" text-red-400  text-xl cursor-pointer"
-                        />
-                    )}
-                </div>
-            </div>
 
-            <div className="flex items-center justify-between gap-x-">
-                {/* <img
+                <div className="flex items-center justify-between gap-x-">
+                    {/* <img
                     className="rounded-full w-[60px] h-[60px]"
                     src={`https://api.dicebear.com/5.x/initials/svg?seed=${
                         teacher.name
                     }&backgroundColor=${setColor(teacher.assigned_status)}`}
                     alt={teacher.name}
                 /> */}
-                <Avatar
-                    src={`https://api.dicebear.com/5.x/initials/svg?seed=${
-                        teacher.name
-                    }&backgroundColor=${setColor(teacher.assigned_status)}`}
-                    alt={teacher.name}
-                    width={2}
-                    height={2}
-                />
-                <div>
-                    <div>{teacher.name}</div>
-                    {/* this is teacher total current load and not for this subject only */}
-                    <div>Total {teacher.current_load}</div>
+                    <Avatar
+                        src={`https://api.dicebear.com/5.x/initials/svg?seed=${
+                            teacher.name
+                        }&backgroundColor=${setColor(teacher.assigned_status)}`}
+                        alt={teacher.name}
+                        width={2}
+                        height={2}
+                    />
+                    <div>
+                        <div>{teacher.name}</div>
+                        {/* this is teacher total current load and not for this subject only */}
+                        <div>Total {teacher.current_load}</div>
+                    </div>
                 </div>
-            </div>
-            {/* {console.log(buttons["L"])} */}
-            <Divider h="2px" my="10px" type="success" />
-            <div className="mt-2.5 flex flex-col gap-y-2">
-                {teacher.preferred_mode.split("").map((mode, idx) => {
-                    return (
-                        <div
-                            className="flex justify-between items-center"
-                            key={idx}
-                        >
-                            <div>{MODES[mode].label}</div>
-                            {teacherAllotmentsQuery.isLoading ? (
-                                <Loading type="success" />
-                            ) : (
-                                <>
-                                    {/* {console.log(
+                {/* {console.log(buttons["L"])} */}
+                <Divider h="2px" my="10px" type="success" />
+                <div className="mt-2.5 flex flex-col gap-y-2">
+                    {teacher.preferred_mode.split("").map((mode, idx) => {
+                        return (
+                            <div
+                                className="flex justify-between items-center"
+                                key={idx}
+                            >
+                                <div>{MODES[mode].label}</div>
+                                {teacherAllotmentsQuery.isLoading ? (
+                                    <Loading type="success" />
+                                ) : (
+                                    <>
+                                        {/* {console.log(
                                         teacherAllotmentsQuery.data.data
                                     )} */}
-                                    <SliderComp
-                                        min={0}
-                                        max={
-                                            subjectMaxHours[
-                                                MODES[mode].label
-                                                    .toString()
-                                                    .toLowerCase()
-                                            ]
-                                        }
-                                        step={
-                                            MODES[mode].label === "Practical"
-                                                ? 2
-                                                : 1
-                                        }
-                                        value={MODES[mode].state}
-                                        setState={MODES[mode].setState}
-                                        teacherAllotmentsQuery={
-                                            teacherAllotmentsQuery
-                                        }
-                                        subjectId={subjectData.id}
-                                        mode={mode}
-                                    />
-                                </>
-                            )}
-                        </div>
-                    );
-                })}
-            </div>
+                                        <SliderComp
+                                            min={0}
+                                            max={
+                                                subjectMaxHours[
+                                                    MODES[mode].label
+                                                        .toString()
+                                                        .toLowerCase()
+                                                ]
+                                            }
+                                            step={
+                                                MODES[mode].label ===
+                                                "Practical"
+                                                    ? 2
+                                                    : 1
+                                            }
+                                            value={MODES[mode].state}
+                                            setState={MODES[mode].setState}
+                                            teacherAllotmentsQuery={
+                                                teacherAllotmentsQuery
+                                            }
+                                            subjectId={subjectData.id}
+                                            mode={mode}
+                                        />
+                                    </>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
 
-            {/* <div
+                {/* <div
                 onClick={handleAssignTeacher}
                 className="mt-2 text-center bg-green-400 rounded-[5px] py-1 cursor-pointer"
             >
                 <button>Assign</button>
             </div> */}
-            <Button
-                width="100%"
-                mt="10px"
-                onClick={handleAssignTeacher}
-                type="success-light"
-                loading={teacherAllotmentsQuery.isLoading}
-            >
-                Assign
-            </Button>
-            {/* // </div> */}
-        </Card>
+                <Button
+                    width="100%"
+                    mt="10px"
+                    onClick={handleAssignTeacher}
+                    type="success-light"
+                    loading={teacherAllotmentsQuery.isLoading}
+                >
+                    Assign
+                </Button>
+                {/* // </div> */}
+            </Card>
+        </Badge.Anchor>
     );
 };
 
