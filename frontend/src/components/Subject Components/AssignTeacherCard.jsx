@@ -2,7 +2,6 @@
 
 import setColor from "../../helpers/SetColor";
 import { useState, useEffect } from "react";
-import getChoiceColor from "../../helpers/getChoiceColor";
 import { TiDelete } from "react-icons/ti";
 import Client from "../../helpers/Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -141,17 +140,18 @@ const AssignTeacherCard = ({ choice_number, teacher, subjectData }) => {
 
     return (
         <Badge.Anchor placement="topLeft">
-            <Badge scale={0.5}>{choice_number}</Badge>
+            <Badge scale={0.6}>{choice_number}</Badge>
             <Card
                 width="250px"
                 style={{
-                    backgroundColor: getChoiceColor(choice_number),
+                    // backgroundColor: getChoiceColor(choice_number),
+                    backgroundColor: "#5fdadc",
                     position: "relative",
                 }}
             >
                 {/* <div>{teacher.id}</div> */}
-                <div className="absolute top-0 right-0 flex  z-10">
-                    <div className="mt-[4px] mr-1 self-center">
+                <div className="absolute top-0 right-0 flex items-start">
+                    <div className="mt-[4px] mr-1">
                         {teacherAllotmentsQuery.isLoading ||
                         teacherAllotmentsQuery.data?.data.length < 2 ? null : (
                             <div>
@@ -165,11 +165,11 @@ const AssignTeacherCard = ({ choice_number, teacher, subjectData }) => {
                             </div>
                         )}
                     </div>
-                    <div className="self-center">
+                    <div className="mt-[1px]">
                         {choice_number === 0 && (
                             <TiDelete
                                 onClick={() => removeTeacherMutation.mutate()}
-                                className=" text-red-400  text-xl cursor-pointer"
+                                className=" text-red-600  text-2xl cursor-pointer"
                             />
                         )}
                     </div>

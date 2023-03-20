@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { AutoComplete, Text, Button } from "@geist-ui/core";
-import setColor from "../../helpers/SetColor";
+import { AutoComplete, Text } from "@geist-ui/core";
+import setColor from "../../helpers/setColor.js";
 
 import { client } from "../../Pages/SubjectsPage";
 
