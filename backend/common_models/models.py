@@ -103,6 +103,14 @@ class Subject(models.Model):
     def __str__(self):
         return f"{self.course_code}: {self.name}"
 
+    def repr_csv(self):
+        credits_repr = (
+            f"{self.original_lecture_hours}-"
+            f"{self.original_tutorial_hours}-"
+            f"{self.original_practical_hours}"
+        )
+        return f"{self.name.title()} ({self.programme.capitalize()})({credits_repr})"
+
     @property
     def allotment_status(self) -> AllotmentStatus:
         current = AllotmentStatus.compute_partial_or_full(
@@ -234,6 +242,12 @@ class Allotment(models.Model):
     def __str__(self):
         return f"teacher={self.teacher.name}, subject={self.subject.name}, lecture={self.allotted_lecture_hours}, " \
                f"tutorial={self.allotted_tutorial_hours}, practical={self.allotted_practical_hours}"
+
+    def get_allotment_total_hours(self):
+        return (
+            self.allotted_lecture_hours + self.allotted_tutorial_hours +
+            self.allotted_practical_hours
+        )
 
 
 class CeleryFileResults(models.Model):
