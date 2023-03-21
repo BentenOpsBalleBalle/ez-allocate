@@ -234,3 +234,11 @@ class Allotment(models.Model):
     def __str__(self):
         return f"teacher={self.teacher.name}, subject={self.subject.name}, lecture={self.allotted_lecture_hours}, " \
                f"tutorial={self.allotted_tutorial_hours}, practical={self.allotted_practical_hours}"
+
+
+class CeleryFileResults(models.Model):
+    id = models.UUIDField(primary_key=True)
+    filename = models.SlugField(max_length=80)
+    file = models.BinaryField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    has_been_downloaded_yet = models.BooleanField(default=False)
