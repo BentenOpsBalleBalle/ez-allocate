@@ -1,5 +1,9 @@
+from typing import Union
+
 from common_models import serializers
 from common_models.models import Allotment, Choices, Subject, Teacher
+from django.db.models import Q
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status, viewsets
@@ -12,7 +16,7 @@ from rest_framework.response import Response
 
 
 class CustomPagination(PageNumberPagination):
-    page_size = 10
+    page_size = 8
 
 
 class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
@@ -32,7 +36,7 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
         return response
 
     @extend_schema(responses={200: serializers.SubjectChoicesSetSerializer(many=True)})
-    @action(detail=True)
+    @action(detail=True, pagination_class=None)
     def choices(self, request, pk=None):
         """
         Returns the list of teachers that have selected the current subject
@@ -69,7 +73,8 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
     @action(
         detail=True,
         methods=["POST", "DELETE"],
-        url_path=r'choices/modify/(?P<teacher>\w+)'
+        url_path=r'choices/modify/(?P<teacher>\w+)',
+        pagination_class=None
     )
     def choices_modify(self, request: Request, pk=None, teacher=None):
         subject = self.get_object()
@@ -97,11 +102,16 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
                     status=status.HTTP_403_FORBIDDEN
                 )
             instance.delete()
+            # also delete allotment if it exists
+            try:
+                self.commit_ltp_delete(request, pk=pk, teacher_id=teacher)
+            except Http404:
+                pass
 
         return self.choices(request, pk=pk)
 
     @extend_schema(responses={200: serializers.SubjectAllotmentSetSerializer})
-    @action(detail=True)
+    @action(detail=True, pagination_class=None)
     def allotments(self, request, pk=None):
         """
         Returns the list of teachers that have been allotted to the current subject
@@ -115,7 +125,7 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
         request=serializers.CommitLTPSerializer,
         responses={200: serializers.SubjectAllotmentSetSerializer(many=True)}
     )
-    @action(detail=True, methods=["POST"])
+    @action(detail=True, methods=["POST"], pagination_class=None)
     def commit_ltp(self, request, pk=None):
         """
         modifies the allotment entries for the given subject
@@ -134,7 +144,7 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
                 request, pk, teacher_id=serializer.data["teacher"]
             )
 
-        serializer.save()
+        serializer.update_or_save()
 
         return self.allotments(request, pk=pk)
 
@@ -155,7 +165,12 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
         },
         methods=["DELETE"]
     )
-    @action(detail=True, methods=["DELETE"], url_path=r"commit_ltp/(?P<teacher_id>\w+)")
+    @action(
+        detail=True,
+        methods=["DELETE"],
+        url_path=r"commit_ltp/(?P<teacher_id>\w+)",
+        pagination_class=None
+    )
     def commit_ltp_delete(self, request, pk=None, teacher_id=None):
         allottment_instance = get_object_or_404(
             Allotment, subject__pk=pk, teacher__pk=teacher_id
@@ -191,4 +206,75 @@ class TeacherViewSet(viewsets.ReadOnlyModelViewSet):
         """
         queryset = Allotment.objects.filter(teacher__pk=pk)
         serializer = serializers.TeacherAllotmentSetSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+class SearchViewSet(viewsets.ViewSet):
+    """
+    This viewset provides a search API for teachers and subjects models
+    """
+
+    def __search(self, model: Union[Teacher, Subject], query="", fields=[], limit=10):
+        """
+        An internal abstracted method that provides the filter based on the fields
+        to search on and returns the query result
+
+        search is done using `icontains` filter and OR-ed with all the other
+        fields provided
+        """
+        q_args = []
+        for field in fields:
+            q = Q(**{field + "__icontains": query})
+            if not q_args:
+                q_args.append(q)
+            else:
+                q_args[0] |= q  # OR-ing the Q() object conditions
+
+        return model.objects.filter(*[q_args[0]])[:limit]
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='q',
+                description='the search query',
+                required=True,
+                type=str,
+                location="query"
+            )
+        ],
+        responses=serializers.SubjectListSerializer(many=True)
+    )
+    @action(detail=False)
+    def subjects(self, request):
+        """
+        returns a set of results on subjects that match the query provided.
+
+        Searches over the fields: `name`, `course_code`
+        """
+        query = request.query_params.get("q", "")
+        data = self.__search(model=Subject, query=query, fields=["name", "course_code"])
+        serializer = serializers.SubjectListSerializer(data, many=True)
+        return Response(serializer.data)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='q',
+                description='the search query',
+                required=True,
+                type=str,
+            )
+        ],
+        responses=serializers.TeacherSerializer(many=True)
+    )
+    @action(detail=False)
+    def teachers(self, request):
+        """
+        returns a set of results on teachers that match the query provided.
+
+        Searches over the fields: `name`, `email`
+        """
+        query = request.query_params.get("q", "")
+        data = self.__search(Teacher, query, ["name", "email"])
+        serializer = serializers.TeacherSerializer(data, many=True)
         return Response(serializer.data)

@@ -1,3 +1,4 @@
+import logging
 from typing import OrderedDict
 
 from django.conf import settings
@@ -9,6 +10,8 @@ from rest_framework.validators import UniqueTogetherValidator
 from .models import Allotment, Choices, Subject, Teacher
 
 # TODO: add unit tests to make sure all properties are returned in the response
+
+logger = logging.getLogger(__name__)
 
 
 class _ExtraFieldModelSerializer(serializers.ModelSerializer):
@@ -42,7 +45,7 @@ class SubjectListSerializer(_ExtraFieldModelSerializer):
 
     class Meta:
         model = Subject
-        fields = ["id", "name", "course_code", "programme", "credits"]
+        fields = ["id", "name", "course_code", "course_type", "programme", "credits"]
         extra_fields = ["allotment_status"]
 
 
@@ -137,6 +140,16 @@ class CommitLTPSerializer(AllotmentSerializer):
     class Meta(AllotmentSerializer.Meta):
         pass
 
+    def validate_teacher(self, value):
+        """
+        check that the teacher being added is in the Choices list
+        """
+        subject_pk = self.get_initial().get("subject", "")
+        if not Choices.objects.filter(teacher=value, subject__pk=subject_pk).exists():
+            raise serializers.ValidationError("this teacher is not added into the choices")
+
+        return value
+
     def validate(self, data: OrderedDict):
         """
         Validates whether the submitted LTP hours are:
@@ -153,7 +166,13 @@ class CommitLTPSerializer(AllotmentSerializer):
         allotted_tutorial_hours: int = data.setdefault("allotted_tutorial_hours", 0)
         allotted_practical_hours: int = data.setdefault("allotted_practical_hours", 0)
 
-        total_hours = allotted_lecture_hours + allotted_practical_hours + allotted_tutorial_hours
+        current_instance_hours = self.__get_current_instance_hours(subject, teacher)
+
+        total_hours = (
+            allotted_lecture_hours + allotted_practical_hours + allotted_tutorial_hours +
+            -sum(current_instance_hours.values())
+            # subtract current instance's hours from the total hours
+        )
 
         # validate if hours are feasible by the teacher
         if teacher.hours_left() < total_hours:
@@ -166,16 +185,20 @@ class CommitLTPSerializer(AllotmentSerializer):
         # allotted L, T, P should be less than the subject's limits
         keys = ("_lecture_hours", "_tutorial_hours", "_practical_hours")
 
-        # get available subject hours
         for key in keys:
-            available_hours = subject.__getattribute__(
-                "total" + key
-            ) - subject.__getattribute__("allotted" + key)
+            # get available subject hours
+            available_hours = (
+                subject.__getattribute__("total" + key) +
+                current_instance_hours.get("allotted" + key) -
+                subject.__getattribute__("allotted" + key)
+            )
+
             if data["allotted" + key] > available_hours:
                 raise serializers.ValidationError(
                     {
                         "allotted" + key:
                         f"exceeded available {key[1:]}. remaining hours: {available_hours}"
+                        f"""\n{current_instance_hours.get("allotted" + key)} | {subject.__getattribute__("allotted" + key)}"""
                     }
                 )
 
@@ -199,6 +222,28 @@ class CommitLTPSerializer(AllotmentSerializer):
                     )
         return data
 
+    def __get_current_instance_hours(self, subject: Subject, teacher: Teacher):
+        """
+        returns the current Allotment instance's hours if they exist, otherwise 0 filled dictioary
+        """
+        if len(
+            instance_list := Allotment.objects.filter(subject=subject, teacher=teacher)
+        ) == 1:
+            __current_instance = instance_list[0]
+
+            current_instance_hours = {
+                "allotted_lecture_hours": __current_instance.allotted_lecture_hours,
+                "allotted_tutorial_hours": __current_instance.allotted_tutorial_hours,
+                "allotted_practical_hours": __current_instance.allotted_practical_hours
+            }
+        else:
+            current_instance_hours = {
+                "allotted_lecture_hours": 0,
+                "allotted_tutorial_hours": 0,
+                "allotted_practical_hours": 0
+            }
+        return current_instance_hours
+
     def is_empty_allotment(self) -> bool:
         """
         returns if the given allotment is empty aka LTP are at 0
@@ -209,3 +254,18 @@ class CommitLTPSerializer(AllotmentSerializer):
             self.validated_data["allotted_tutorial_hours"] +
             self.validated_data["allotted_practical_hours"]
         ) == 0
+
+    def update_or_save(self):
+        instance_list = Allotment.objects.filter(
+            subject=self.validated_data["subject"], teacher=self.validated_data["teacher"]
+        )
+        if len(instance_list) == 1:
+            self.update(instance_list[0], self.validated_data)
+        elif len(instance_list) == 0:
+            self.save()
+        else:
+            logger.critical(
+                "this should not be possible!! have %d instances of "
+                "Allotment for subject: \"%s\" & teacher: \"%s\"", len(instance_list),
+                self.validated_data["subject"], self.validated_data["teacher"]
+            )

@@ -132,6 +132,10 @@ class CommitLTPValidatorTest(APITestCase):
         cls.teacher1 = Teacher(name="john")
         cls.teacher1.save()
 
+    def _add_to_choices(self, teacher, subject):
+        url = reverse("subjects-choices-modify", args=[subject, teacher])
+        self.client.post(url, format="json")
+
     def call_api(
         self,
         teacher=1,
@@ -140,6 +144,7 @@ class CommitLTPValidatorTest(APITestCase):
         allotted_tutorial=0,
         allotted_practical=0
     ):
+        self._add_to_choices(teacher, subject)
         url = reverse(
             "subjects-commit-ltp", args=[subject]
         )  # subject & teacher have the argument 1
@@ -330,6 +335,162 @@ class CommitLTPValidatorTest(APITestCase):
             allotted_practical_hours=6
         )
         url = reverse("subjects-commit-ltp-delete", args=["1", "1"])
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Allotment.objects.count(), 0)
+
+    def test_existing_allotment_is_updated(self):
+        subject1 = Subject(
+            name="subject1",
+            course_code="sub1",
+            credits=3,
+            course_type=Subject.CourseType.CORE,
+            original_lecture_hours=5,
+            original_tutorial_hours=5,
+            original_practical_hours=5,
+            number_of_lecture_batches=2,
+            number_of_practical_or_tutorial_batches=4
+        )
+        subject1.save()
+
+        response = self.call_api(
+            allotted_lecture=1, allotted_tutorial=2, allotted_practical=6
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Allotment.objects.count(), 1)
+
+        # now update it
+        response = self.call_api(
+            allotted_lecture=3, allotted_tutorial=2, allotted_practical=0
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Allotment.objects.count(), 1)
+
+    def test_ltp_feasibility_should_exclude_current_allotment(self):
+        subject1 = Subject(
+            name="subject1",
+            course_code="sub1",
+            credits=3,
+            course_type=Subject.CourseType.CORE,
+            original_lecture_hours=2,
+            original_tutorial_hours=2,
+            original_practical_hours=2,
+            number_of_lecture_batches=1,
+            number_of_practical_or_tutorial_batches=1
+        )
+        subject1.save()
+
+        response = self.call_api(
+            allotted_lecture=1, allotted_tutorial=2, allotted_practical=2
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # now update it
+        response = self.call_api(
+            allotted_lecture=2, allotted_tutorial=2, allotted_practical=2
+        )
+        # print(subject1.allotment_status, response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(subject1.allotment_status, "FULL")
+
+    def test_ltp_feasibility_on_teacher_workload_side(self):
+        subject1 = Subject(
+            name="subject1",
+            course_code="sub1",
+            credits=3,
+            course_type=Subject.CourseType.CORE,
+            original_lecture_hours=1,
+            original_tutorial_hours=1,
+            original_practical_hours=2,
+            number_of_lecture_batches=5,
+            number_of_practical_or_tutorial_batches=5
+        )
+        subject1.save()
+
+        subject2 = Subject(
+            name="subject2",
+            course_code="sub2",
+            credits=3,
+            course_type=Subject.CourseType.CORE,
+            original_lecture_hours=2,
+            original_tutorial_hours=2,
+            original_practical_hours=2,
+            number_of_lecture_batches=1,
+            number_of_practical_or_tutorial_batches=2
+        )
+        subject2.save()
+
+        teacher2 = Teacher(name="damon salvatore", email="damon@salva.tor")
+        teacher2.save()
+
+        res = self.call_api(allotted_lecture=5, allotted_tutorial=5, allotted_practical=1)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        res = self.call_api(
+            teacher=2,
+            subject="2",
+            allotted_lecture=0,
+            allotted_tutorial=1,
+            allotted_practical=1
+        )
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        # now test
+
+        response = self.call_api(subject="2", allotted_lecture=1, allotted_tutorial=1)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # now update again
+        response = self.call_api(subject="2", allotted_lecture=2, allotted_tutorial=1)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.teacher1.current_load, 14)
+
+    def test_teacher_not_in_choice_should_not_be_added(self):
+        subject1 = Subject(
+            name="subject1",
+            course_code="sub1",
+            credits=3,
+            course_type=Subject.CourseType.CORE,
+            original_lecture_hours=1,
+            original_tutorial_hours=1,
+            original_practical_hours=2,
+            number_of_lecture_batches=2,
+            number_of_practical_or_tutorial_batches=6
+        )
+        subject1.save()
+
+        url = reverse("subjects-commit-ltp", args=["1"])
+        data = {
+            "teacher": "1",
+            "allotted_lecture_hours": 1,
+            "allotted_tutorial_hours": 1,
+            "allotted_practical_hours": 1
+        }
+        response = self.client.post(url, format="json", data=data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_deleting_a_manual_teacher_deletes_allotment(self):
+        subject1 = Subject(
+            name="subject1",
+            course_code="sub1",
+            credits=3,
+            course_type=Subject.CourseType.CORE,
+            original_lecture_hours=1,
+            original_tutorial_hours=1,
+            original_practical_hours=2,
+            number_of_lecture_batches=2,
+            number_of_practical_or_tutorial_batches=6
+        )
+        subject1.save()
+        self.assertEqual(Allotment.objects.count(), 0)
+
+        response = self.call_api(allotted_practical=2)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Allotment.objects.count(), 1)
+
+        # now remove the manually added teacher
+        url = reverse("subjects-choices-modify", args=[1, 1])
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Allotment.objects.count(), 0)
