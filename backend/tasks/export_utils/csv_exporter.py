@@ -14,11 +14,12 @@ class CSVExportHandler:
     """
     fieldnames = ["Subject", "Teacher"]
 
-    def __init__(self, codec="utf-8") -> None:
+    def __init__(self, fieldnames=None, codec="utf-8") -> None:
         self.bio = io.BytesIO()
-        self.__StreamWriter = codecs.getwriter('utf-8')
+        self.__StreamWriter = codecs.getwriter(codec)
         self.wrapper_file = self.__StreamWriter(self.bio)
         self.writer = None
+        self.fieldnames = fieldnames or self.fieldnames
 
     def get_csv_dict_writer(self):
         self.writer = csv.DictWriter(self.wrapper_file, fieldnames=self.fieldnames)
