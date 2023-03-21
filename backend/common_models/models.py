@@ -237,7 +237,7 @@ class Allotment(models.Model):
 
 
 class CeleryFileResults(models.Model):
-    id = models.UUIDField(primary_key=True)
+    id = models.UUIDField(primary_key=True, editable=False)
     filename = models.SlugField(max_length=80)
     file = models.BinaryField()
     created_at = models.DateTimeField(auto_now_add=True)
