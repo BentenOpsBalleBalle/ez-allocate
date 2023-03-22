@@ -32,9 +32,9 @@ services:
 
   backend:
     image: ghcr.io/bentenopsballeballe/ez-allocate-backend:dev-backend
-    # build:
-    #   context: backend
-    #   dockerfile: ./Dockerfile.dev
+    build:
+      context: backend
+      dockerfile: ./Dockerfile.dev
     ports:
       - 8000:8000
     networks:
