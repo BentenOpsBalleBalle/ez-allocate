@@ -106,6 +106,7 @@ const AssignTeacherCard = ({ choice_number, teacher, subjectData }) => {
                 body: allottmentData,
             });
         },
+
         {
             onSuccess: (data) => {
                 queryClient.refetchQueries(["subjects", subjectData.id], {
@@ -123,6 +124,7 @@ const AssignTeacherCard = ({ choice_number, teacher, subjectData }) => {
             onError: (error) => {
                 console.log(error);
             },
+            useErrorBoundary: true,
         }
     );
     const handleAssignTeacher = async () => {
