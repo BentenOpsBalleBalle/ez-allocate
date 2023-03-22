@@ -3,7 +3,7 @@
 import setColor from "../../helpers/setColor.js";
 import { useState, useEffect } from "react";
 import { TiDelete } from "react-icons/ti";
-import Client from "../../helpers/Client";
+import { request } from "../../helpers/Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import getCurrentAllotmentData from "../../helpers/getCurrentAllotmentData";
 import {
@@ -18,8 +18,6 @@ import {
     Badge,
 } from "@geist-ui/core";
 import { RiErrorWarningFill } from "react-icons/ri";
-
-const client = new Client();
 
 const AssignTeacherCard = ({ choice_number, teacher, subjectData }) => {
     const queryClient = useQueryClient();
@@ -43,7 +41,7 @@ const AssignTeacherCard = ({ choice_number, teacher, subjectData }) => {
     const teacherAllotmentsQuery = useQuery(
         ["teachers", teacher.id, "allotments"],
         () =>
-            client.createUrl({
+            request.send({
                 url: `api/teachers/${teacher.id}/allotments`,
                 method: "GET",
                 service: "allocate",
@@ -70,7 +68,7 @@ const AssignTeacherCard = ({ choice_number, teacher, subjectData }) => {
 
     const removeTeacherMutation = useMutation(
         () =>
-            client.createUrl({
+            request.send({
                 url: `api/subjects/${subjectData.id}/choices/modify/${teacher.id}/`,
                 method: "DELETE",
                 service: "allocate",
@@ -101,7 +99,7 @@ const AssignTeacherCard = ({ choice_number, teacher, subjectData }) => {
 
     const assignTeacher = useMutation(
         (allottmentData) => {
-            return client.createUrl({
+            return request.send({
                 url: `api/subjects/${subjectData.id}/commit_ltp/`,
                 method: "POST",
                 service: "allocate",

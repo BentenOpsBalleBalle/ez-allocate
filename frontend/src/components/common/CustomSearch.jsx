@@ -3,8 +3,7 @@ import { useState } from "react";
 import { AutoComplete, Text } from "@geist-ui/core";
 import setColor from "../../helpers/setColor.js";
 
-import { client } from "../../Pages/SubjectsPage";
-
+import { request } from "../../helpers/Client.js";
 export const CustomSearch = ({ searchFor, onSelect, width }) => {
     const subjectOption = (courseName, courseCode, status, id) => (
         <AutoComplete.Option value={id}>
@@ -49,7 +48,7 @@ export const CustomSearch = ({ searchFor, onSelect, width }) => {
     const searchQuery = useQuery(
         ["search", searchFor, searchValue],
         () =>
-            client.createUrl({
+            request.send({
                 url: `api/search/${searchFor}/?q=${searchValue}`,
                 method: "GET",
                 service: "allocate",

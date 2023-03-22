@@ -1,4 +1,4 @@
-import Client from "../helpers/Client";
+import { request } from "../helpers/Client";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Pagination } from "../components/common/Pagination";
@@ -9,35 +9,22 @@ import { FiSearch } from "react-icons/fi";
 import { CustomSearch } from "../components/common/CustomSearch";
 import { TeacherCard } from "../components/Teacher Components/TeacherCard";
 
-// import axios from "axios";
-
-const client = new Client();
-
-const getTeachers = async (page) => {
-    return await client.createUrl({
-        url: `api/teachers/?page=${page}`,
-        method: "GET",
-        service: "allocate",
-    });
-};
-
 function TeachersPage() {
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState(false);
     const navigate = useNavigate();
     const teachersQuery = useQuery(
         ["teachers", { page }],
-        () => getTeachers(page),
+        () =>
+            request.send({
+                url: `api/teachers/?page=${page}`,
+                method: "GET",
+                service: "allocate",
+            }),
         {
             keepPreviousData: true,
         }
     );
-
-    // async function ok() {
-    //     const response = await axios.get("http://localhost:8000/api/subjects/");
-    //     console.log(response.data);
-    // }
-    // ok();
 
     if (teachersQuery.isError) {
         return <p>Error: {teachersQuery.error.message}</p>;

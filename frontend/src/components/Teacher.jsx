@@ -1,11 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
-import Client from "../helpers/Client";
+import { request } from "../helpers/Client";
 import Tile from "./Teacher Components/Tile";
 import CircularApexChart from "./Teacher Components/ApexChart";
 import { useState, useMemo } from "react";
-
-const client = new Client();
 
 const Teacher = () => {
     const { id } = useParams();
@@ -16,7 +14,7 @@ const Teacher = () => {
     const teacherAllotmentsQuery = useQuery(
         ["teachers", +id, "allotments"],
         () =>
-            client.createUrl({
+            client.send({
                 url: `api/teachers/${id}/allotments`,
                 method: "GET",
                 service: "allocate",
@@ -36,7 +34,7 @@ const Teacher = () => {
     }, [teacherAllotmentsQuery.data?.data]);
 
     const teacherQuery = useQuery(["teachers", +id], () =>
-        client.createUrl({
+        request.send({
             url: `api/teachers/${id}/`,
             method: "GET",
             service: "allocate",

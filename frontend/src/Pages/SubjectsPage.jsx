@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import Client from "../helpers/Client";
+import { request } from "../helpers/Client";
 import FetchingIndicator from "../components/common/FetchingIndicator";
 import { Pagination } from "../components/common/Pagination";
 import { Drawer } from "@geist-ui/core";
@@ -9,8 +9,6 @@ import SubjectCard from "../components/Subject Components/SubjectCard";
 import { CustomSearch } from "../components/common/CustomSearch";
 import { useNavigate } from "react-router-dom";
 
-export const client = new Client();
-
 function SubjectsPage() {
     const navigate = useNavigate();
     const [page, setPage] = useState(1);
@@ -18,7 +16,7 @@ function SubjectsPage() {
     const subjectsQuery = useQuery(
         ["subjects", { page }],
         () =>
-            client.createUrl({
+            request.send({
                 url: `api/subjects/?page=${page}`,
                 method: "GET",
                 service: "allocate",
