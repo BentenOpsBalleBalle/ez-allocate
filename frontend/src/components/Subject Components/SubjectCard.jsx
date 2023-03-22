@@ -17,7 +17,7 @@ function SubjectCard({ name, allotmentStatus, id, course_code }) {
             }`}
         >
             <img
-                src="../../src/assets/login.jpg"
+                src="/login.jpg"
                 alt=""
                 className="object-cover w-64 h-40 pt-0 rounded-l"
             />
