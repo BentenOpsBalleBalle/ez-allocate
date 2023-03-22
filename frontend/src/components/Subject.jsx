@@ -7,7 +7,8 @@ import { useParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Spinner, useToasts, Tag } from "@geist-ui/core";
 import { CustomSearch } from "./common/CustomSearch";
-
+import { ErrorBoundary } from "react-error-boundary";
+import AssignTeacherCustomError from "./Subject Components/AssignTeacherCustomError";
 const Subject = () => {
     const queryClient = useQueryClient();
     const { id } = useParams();
@@ -91,27 +92,26 @@ const Subject = () => {
                 </div>
             </div>
 
-            {choiceQuery.isLoading ? (
-                <Spinner />
-            ) : (
-                <div className="mt-4">
-                    <div className="flex gap-8 flex-wrap">
-                        {choiceQuery.data.data.map((choice) => {
-                            return (
-                                <AssignTeacherCard
-                                    key={choice.teacher.id}
-                                    choice_number={choice.choice_number}
-                                    teacher={choice.teacher}
-                                    subjectData={subjectQuery.data.data}
-                                />
-                            );
-                        })}
+            <ErrorBoundary FallbackComponent={AssignTeacherCustomError}>
+                {choiceQuery.isLoading ? (
+                    <Spinner />
+                ) : (
+                    <div className="mt-4">
+                        <div className="flex gap-8 flex-wrap">
+                            {choiceQuery.data.data.map((choice) => {
+                                return (
+                                    <AssignTeacherCard
+                                        key={choice.teacher.id}
+                                        choice_number={choice.choice_number}
+                                        teacher={choice.teacher}
+                                        subjectData={subjectQuery.data.data}
+                                    />
+                                );
+                            })}
+                        </div>
                     </div>
-                </div>
-            )}
-            {/* <button onClick={() => addTeacherMutation.mutate()}>
-                Manual Teacher
-            </button> */}
+                )}
+            </ErrorBoundary>
         </div>
     );
 };
