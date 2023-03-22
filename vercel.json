@@ -1,4 +1,4 @@
 {
     "ignoreCommand": "git diff HEAD^ HEAD --quiet .",
-    "rewrites": [{ "source": "/subjects", "destination": "/index.html" }]
+    "rewrites": [{ "source": "/(.*)", "destination": "/" }]
 }
