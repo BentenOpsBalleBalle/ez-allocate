@@ -26,14 +26,10 @@ function TeachersPage() {
         }
     );
 
-    if (teachersQuery.isError) {
-        return <p>Error: {teachersQuery.error.message}</p>;
-    }
-
     return (
         <div>
             <div className="title text-[35px] ml-[30px] mr-[15px] font-bold flex justify-between items-center">
-                <div>
+                <div className="flex items-center gap-x-2">
                     T E A C H E R S
                     <FetchingIndicator />
                 </div>
@@ -50,8 +46,6 @@ function TeachersPage() {
                 visible={search}
                 onClose={() => setSearch(false)}
                 placement="right"
-
-                // height="100%"
             >
                 <Drawer.Title>Search</Drawer.Title>
                 <Drawer.Subtitle>Look for teacher</Drawer.Subtitle>
@@ -66,20 +60,29 @@ function TeachersPage() {
                     />
                 </Drawer.Content>
             </Drawer>
-
-            {teachersQuery.isLoading ? null : (
-                <div className="flex mt-6 flex-wrap gap-8  justify-center">
-                    {teachersQuery.data.data.results.map((teacher) => (
-                        <TeacherCard
-                            key={teacher.id}
-                            name={teacher.name}
-                            assigned_status={teacher.assigned_status}
-                            preferred_mode={teacher.preferred_mode}
-                            id={teacher.id}
-                        />
-                    ))}
+            {teachersQuery.isError ? (
+                <div className="text-center text-red-500 text-2xl font-bold">
+                    {teachersQuery.error.message}
                 </div>
+            ) : (
+                <>
+                    {teachersQuery.isLoading ? null : (
+                        <div className="flex mt-6 flex-wrap gap-8  justify-center">
+                            {teachersQuery.data.data.results.map((teacher) => (
+                                <TeacherCard
+                                    key={teacher.id}
+                                    name={teacher.name}
+                                    assigned_status={teacher.assigned_status}
+                                    preferred_mode={teacher.preferred_mode}
+                                    current_load={teacher.current_load}
+                                    id={teacher.id}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </>
             )}
+
             <Pagination setPage={setPage} page={page} query={teachersQuery} />
         </div>
     );

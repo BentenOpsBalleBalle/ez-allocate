@@ -26,10 +26,6 @@ function SubjectsPage() {
         }
     );
 
-    if (subjectsQuery.isError) {
-        return <p>Error: {subjectsQuery.error.message}</p>;
-    }
-
     return (
         <div className="w-screen h-screen pt-2  overflow-x-hidden">
             <div className="flex justify-between px-8 items-center">
@@ -93,19 +89,27 @@ function SubjectsPage() {
                 </div>
             </div>
 
-            {subjectsQuery.isLoading ? null : (
-                <div className="flex mt-6 flex-wrap gap-8  justify-center">
-                    {/* {console.log(subjectsQuery.data)} */}
-                    {subjectsQuery.data.data.results.map((subject) => (
-                        <SubjectCard
-                            key={subject.id}
-                            name={subject.name}
-                            allotmentStatus={subject.allotment_status}
-                            id={subject.id}
-                            course_code={subject.course_code}
-                        />
-                    ))}
+            {subjectsQuery.isError ? (
+                <div className="text-red-500 text-center text-xl font-bold">
+                    {subjectsQuery.error.message}
                 </div>
+            ) : (
+                <>
+                    {subjectsQuery.isLoading ? null : (
+                        <div className="flex mt-6 flex-wrap gap-8  justify-center">
+                            {/* {console.log(subjectsQuery.data)} */}
+                            {subjectsQuery.data.data.results.map((subject) => (
+                                <SubjectCard
+                                    key={subject.id}
+                                    name={subject.name}
+                                    allotmentStatus={subject.allotment_status}
+                                    id={subject.id}
+                                    course_code={subject.course_code}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </>
             )}
 
             <Pagination setPage={setPage} page={page} query={subjectsQuery} />
