@@ -1,5 +1,3 @@
-//how to remove manually added teacher
-
 import { request } from "../helpers/Client";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import AssignTeacherCard from "./Subject Components/AssignTeacherCard";
