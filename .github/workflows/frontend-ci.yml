@@ -2,18 +2,14 @@ name: test, build & publish frontend
 
 on:
   push:
-    paths:
-      - "**.js"
-      - ".github/workflows/frontend-ci.yml"
-  pull_request:
-    branches: [ "main" ]
-    paths:
-      - "**.js"
-  push:
     branches: ["frontend"]
     paths:
       - "**.js"
       - ".github/workflows/frontend-ci.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "**.js"
 
   # publish on releases, e.g. v2.1.13 (image tagged as "2.1.13" - "v" prefix is removed)
   release:
@@ -22,7 +18,6 @@ on:
   workflow_dispatch:
 
 jobs:
-
   docker-publish:
     runs-on: ubuntu-latest
 
@@ -41,7 +36,6 @@ jobs:
           fi
 
           echo "BRANCH_TAG=$BRANCH_TAG" >> ${GITHUB_ENV}
-
 
       # https://github.com/marketplace/actions/push-to-ghcr
       - name: Build and publish a Docker image for ${{ github.repository }}
