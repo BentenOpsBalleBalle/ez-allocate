@@ -1,4 +1,3 @@
-import login from "../assets/login.jpg";
 import LoginForm from "../components/LoginForm";
 
 function LoginPage() {
@@ -11,7 +10,7 @@ function LoginPage() {
                     </span>
                     Allocate
                 </div>
-                <img src={login} alt="login" className="absolute top-44" />
+                <img src="/login.jpg" alt="login" className="absolute top-44" />
             </div>
             <div className="relative h-screen w-1/2">
                 <div className="absolute top-80 left-[50%] -translate-y-2/4 -translate-x-2/4">
