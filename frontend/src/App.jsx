@@ -6,7 +6,7 @@ import Teacher from "./components/Teacher";
 import { Routes, Route } from "react-router-dom";
 const App = () => {
     return (
-        <div className="w-screen h-screen">
+        <div>
             <Routes>
                 <Route path="/subjects" element={<SubjectsPage />} />
                 <Route path="/subjects/:id" element={<Subject />} />
