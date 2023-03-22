@@ -12,6 +12,9 @@ services:
     environment:
       - AUTH_URL=/
       - ALLOCATE_URL=/
+    networks:
+      - proxy-tier
+      - frontend-backend
 
   nginx:
     restart: always
@@ -19,26 +22,13 @@ services:
       dockerfile: Dockerfile.dev
       context: ./nginx
     depends_on:
-      frontend:
-        condition: service_started
-      backend:
-        condition: service_started
+      - frontend
+      - backend
 
     ports:
-      - '6000:80'
-
-  auth:
-    build:
-      context: ./auth
-      dockerfile: Dockerfile.dev
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./auth:/app
-      - /app/node_modules
-    environment:
-      - NODE_ENV=development
-      - PORT=3000
+      - '80:80'
+    networks:
+      - proxy-tier
 
   backend:
     image: ghcr.io/bentenopsballeballe/ez-allocate-backend:dev-backend
@@ -47,3 +37,10 @@ services:
     #   dockerfile: ./Dockerfile.dev
     ports:
       - 8000:8000
+    networks:
+      - proxy-tier
+      - frontend-backend
+
+networks:
+  frontend-backend:
+  proxy-tier:
