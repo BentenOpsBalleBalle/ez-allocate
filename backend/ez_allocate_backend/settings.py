@@ -87,6 +87,7 @@ CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 5 * 60  # 5 minutes?
 CELERY_BROKER_URL = getenv("CELERY_BROKER_URL", None) or 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = getenv("CELERY_RESULT_BACKEND", None) or 'redis://localhost:6379/0'
+CELERY_RESULT_EXTENDED = True
 
 # Application definition
 
