@@ -25,7 +25,8 @@ SECRET_KEY = 'django-insecure-(%sp-nqnn$erii=ra&gx_uyiv)ornelvd+zynl0z2-r566^0+4
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = getenv("ALLOWED_HOSTS") or []
+ALLOWED_HOSTS = []
+ALLOWED_HOSTS.extend(getenv("ALLOWED_HOSTS", []))
 
 # CUSTOM SETTINGS
 CUSTOM_SETTINGS = {
