@@ -4,9 +4,9 @@ const AssignTeacherCustomError = ({ error, resetErrorBoundary }) => {
     const errorField = Object.keys(error.response.data)[0];
 
     const [state, setState] = useState(true);
-    const closeHandler = (event) => {
+    const closeHandler = () => {
         setState(false);
-        console.log("closed");
+        // console.log("closed");
         resetErrorBoundary();
     };
     return (
