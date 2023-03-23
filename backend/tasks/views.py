@@ -8,6 +8,9 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+# https://ihateregex.io/expr/uuid/
+TASK_ID_PARAM = r"?P<task_id>[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"
+
 
 class AbstractCeleryTaskViewSet(viewsets.GenericViewSet, ABC):
     """
@@ -70,7 +73,7 @@ class AbstractCeleryTaskViewSet(viewsets.GenericViewSet, ABC):
             "status": result.state,
         })
 
-    @action(detail=False, url_path=r"results/(?P<task_id>\w+)")
+    @action(detail=False, url_path=f"results/({TASK_ID_PARAM})")
     def results(self, request, task_id=None):
         """
         This method will be used to call the get_result of child classes.
