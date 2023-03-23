@@ -52,7 +52,8 @@ SPECTACULAR_SETTINGS = {
     'ENUM_NAME_OVERRIDES': {
         'AssignedStatusEnum': 'common_models.models.AllotmentStatus',
         'AllotmentStatusEnum': 'common_models.models.AllotmentStatus',
-    }
+    },
+    'SCHEMA_PATH_PREFIX': r'/api/',
 }
 
 # LOGS: SETTINGS
