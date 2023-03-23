@@ -11,6 +11,7 @@ services:
     environment: &backend_env_vars
       CELERY_BROKER_URL: redis://redis:6379/0
       CELERY_RESULT_BACKEND: redis://redis:6379/0
+      CORS_ALLOWED_ORIGINS: https://ez-allocate-git-frontend-benten.vercel.app,https://ez-allocate.vercel.app
     depends_on:
       - redis
     volumes: &backend_volumes
