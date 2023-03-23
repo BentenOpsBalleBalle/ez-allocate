@@ -1,16 +1,14 @@
 from abc import ABC, abstractmethod
 from typing import Union
 
+import tasks.tasks as celery_tasks
 from celery import Task
 from celery.local import PromiseProxy
 from celery.result import AsyncResult
 from drf_spectacular.utils import extend_schema, inline_serializer
-from rest_framework import serializers, viewsets
+from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework import status
-
-import tasks.tasks as celery_tasks
 
 task_status_serializer = inline_serializer(
     name="CeleryTaskStatusResponse",
@@ -77,6 +75,20 @@ class AbstractCeleryTaskViewSet(viewsets.GenericViewSet, ABC):
         """
         pass
 
+    @extend_schema(responses={200: task_status_serializer, 404: task_not_found_serializer})
+    @action(detail=False, url_path=f"status/({TASK_ID_PARAM})")
+    def status(self, request, task_id=None):
+        """
+        Returns the status of the passed in task id
+        """
+
+        result = AsyncResult(task_id)
+        if result.name is not None and result.name.endswith(self.task_name) is False:
+            return Response(
+                {"msg": f"this task id is not valid for '{self.task_name}' task"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        return Response({"task_id": result.id, "status": result.state, "name": result.name})
 
     @extend_schema(responses={200: task_status_serializer})
     @action(detail=False)
@@ -89,6 +101,7 @@ class AbstractCeleryTaskViewSet(viewsets.GenericViewSet, ABC):
         # TODO: in future prevent the same user from creating the task if that
         # task is already created and not completed
         result = self.start_task(*args, **kwargs)
+        return self.status(request, result.task_id)
 
     @action(detail=False, url_path=f"results/({TASK_ID_PARAM})")
     def results(self, request, task_id=None):
