@@ -16,7 +16,6 @@ services:
     volumes: &backend_volumes
       - "./backend/mock-db.sqlite3:/backend/mock-db.sqlite3"
 
-
   celery-worker:
     image: ghcr.io/bentenopsballeballe/ez-allocate-backend:dev-backend
     entrypoint: celery -A ez_allocate_backend worker -l info
