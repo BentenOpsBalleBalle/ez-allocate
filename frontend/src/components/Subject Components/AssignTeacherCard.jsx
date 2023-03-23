@@ -134,8 +134,6 @@ const AssignTeacherCard = ({ choice_number, teacher, subjectData }) => {
             allotted_practical_hours: practical,
             teacher: teacher.id,
         });
-
-        console.log("yuhuuu");
     };
 
     return (

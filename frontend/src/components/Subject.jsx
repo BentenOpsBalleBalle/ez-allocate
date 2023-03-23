@@ -21,7 +21,6 @@ const Subject = () => {
     );
 
     const choiceQuery = useQuery(["subjects", +id, "choices"], () => {
-        console.log("okokokok");
         return request.send({
             url: `api/subjects/${id}/choices`,
             method: "GET",
@@ -59,7 +58,7 @@ const Subject = () => {
     const { isLoading, error } = subjectQuery;
     if (isLoading) return <div>Loading..</div>;
     if (error) return <div>Error: {error.message}</div>;
-    console.log(subjectQuery.data.data);
+    // console.log(subjectQuery.data.data);
     return (
         <div className="w-screen px-4">
             <div className="flex justify-between items-center pt-2 w-full">
@@ -67,15 +66,15 @@ const Subject = () => {
                 {/* {console.log(subjectQuery.data.data)} */}
                 <div className="flex gap-x-4">
                     <Tag invert>
-                        {subjectQuery.data.data.allotted_lecture_hours}/
+                        L: {subjectQuery.data.data.allotted_lecture_hours}/
                         {subjectQuery.data.data.total_lecture_hours}
                     </Tag>
                     <Tag invert>
-                        {subjectQuery.data.data.allotted_tutorial_hours}/
+                        T: {subjectQuery.data.data.allotted_tutorial_hours}/
                         {subjectQuery.data.data.total_tutorial_hours}
                     </Tag>
                     <Tag invert>
-                        {subjectQuery.data.data.allotted_practical_hours}/
+                        P: {subjectQuery.data.data.allotted_practical_hours}/
                         {subjectQuery.data.data.total_practical_hours}
                     </Tag>
                 </div>
