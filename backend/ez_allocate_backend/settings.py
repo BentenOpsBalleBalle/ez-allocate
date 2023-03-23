@@ -26,7 +26,9 @@ SECRET_KEY = 'django-insecure-(%sp-nqnn$erii=ra&gx_uyiv)ornelvd+zynl0z2-r566^0+4
 DEBUG = True
 
 ALLOWED_HOSTS = []
-ALLOWED_HOSTS.extend(getenv("ALLOWED_HOSTS", []))
+ALLOWED_HOSTS.extend(
+    i for i in getenv("ALLOWED_HOSTS", "").split(",") if i != ""
+)
 
 # CUSTOM SETTINGS
 CUSTOM_SETTINGS = {
