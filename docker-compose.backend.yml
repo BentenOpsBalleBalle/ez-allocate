@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  backend:
+    image: ghcr.io/bentenopsballeballe/ez-allocate-backend:dev-backend
+    build:
+      context: backend
+      dockerfile: ./Dockerfile.dev
+    ports:
+      - 8000:8000
+    environment: &backend_env_vars
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      CORS_ALLOWED_ORIGINS: https://ez-allocate-git-frontend-benten.vercel.app,https://ez-allocate.vercel.app
+    depends_on:
+      - redis
+    volumes: &backend_volumes
+      - "./backend/mock-db.sqlite3:/backend/mock-db.sqlite3"
+
+  celery-worker:
+    image: ghcr.io/bentenopsballeballe/ez-allocate-backend:dev-backend
+    entrypoint: celery -A ez_allocate_backend worker -l info
+    deploy:
+      mode: replicated
+      replicas: 1
+    depends_on:
+      - redis
+      - backend
+    environment: *backend_env_vars
+    volumes: *backend_volumes
+
+  redis:
+    image: redis:alpine
+    ports:
+      - 6379:6379

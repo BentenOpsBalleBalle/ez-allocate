@@ -26,6 +26,9 @@ SECRET_KEY = 'django-insecure-(%sp-nqnn$erii=ra&gx_uyiv)ornelvd+zynl0z2-r566^0+4
 DEBUG = True
 
 ALLOWED_HOSTS = []
+ALLOWED_HOSTS.extend(
+    i for i in getenv("ALLOWED_HOSTS", "").split(",") if i != ""
+)
 
 # CUSTOM SETTINGS
 CUSTOM_SETTINGS = {
@@ -40,7 +43,11 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173"
 ]
-
+# yapf: enable
+CORS_ALLOWED_ORIGINS.extend(
+    i for i in getenv("CORS_ALLOWED_ORIGINS", "").split(",") if i != ""
+)
+# yapf: disable
 # REST FRAMEWORK SETTINGS
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
@@ -52,7 +59,8 @@ SPECTACULAR_SETTINGS = {
     'ENUM_NAME_OVERRIDES': {
         'AssignedStatusEnum': 'common_models.models.AllotmentStatus',
         'AllotmentStatusEnum': 'common_models.models.AllotmentStatus',
-    }
+    },
+    'SCHEMA_PATH_PREFIX': r'/api/',
 }
 
 # LOGS: SETTINGS
@@ -79,6 +87,14 @@ LOGGING = {
     },
 
 }
+
+# Celery Configuration Options
+CELERY_TIMEZONE = "Asia/Kolkata"
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 5 * 60  # 5 minutes?
+CELERY_BROKER_URL = getenv("CELERY_BROKER_URL", None) or 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = getenv("CELERY_RESULT_BACKEND", None) or 'redis://localhost:6379/0'
+CELERY_RESULT_EXTENDED = True
 
 # Application definition
 

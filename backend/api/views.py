@@ -3,6 +3,7 @@ from typing import Union
 from common_models import serializers
 from common_models.models import Allotment, Choices, Subject, Teacher
 from django.db.models import Q
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status, viewsets
@@ -101,6 +102,11 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
                     status=status.HTTP_403_FORBIDDEN
                 )
             instance.delete()
+            # also delete allotment if it exists
+            try:
+                self.commit_ltp_delete(request, pk=pk, teacher_id=teacher)
+            except Http404:
+                pass
 
         return self.choices(request, pk=pk)
 
