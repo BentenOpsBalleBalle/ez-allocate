@@ -5,12 +5,12 @@ import tasks.tasks as celery_tasks
 from celery import Task
 from celery.local import PromiseProxy
 from celery.result import AsyncResult
+from common_models.models import CeleryFileResults
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-
-from common_models.models import CeleryFileResults
 
 task_status_serializer = inline_serializer(
     name="CeleryTaskStatusResponse",
