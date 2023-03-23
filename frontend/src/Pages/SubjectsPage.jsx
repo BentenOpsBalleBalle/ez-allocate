@@ -8,6 +8,7 @@ import { FiSearch } from "react-icons/fi";
 import SubjectCard from "../components/Subject Components/SubjectCard";
 import { CustomSearch } from "../components/common/CustomSearch";
 import { useNavigate } from "react-router-dom";
+import ExportComp from "../components/ExportComp";
 
 function SubjectsPage() {
     const navigate = useNavigate();
@@ -50,6 +51,9 @@ function SubjectsPage() {
                             <div className="w-5 h-5 bg-yellow-400 rounded-sm" />
                             <div>PARTIAL</div>
                         </div>
+                    </div>
+                    <div>
+                        <ExportComp />
                     </div>
                 </div>
 
