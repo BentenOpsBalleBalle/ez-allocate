@@ -35,6 +35,7 @@ class AbstractCeleryTaskViewSet(viewsets.GenericViewSet, ABC):
     implement so they only implement how to create the specific task and how to
     fetch it's results
     """
+    # TODO: store the Asyncresult in a property
 
     @property
     @abstractmethod
@@ -77,18 +78,23 @@ class AbstractCeleryTaskViewSet(viewsets.GenericViewSet, ABC):
 
     @extend_schema(responses={200: task_status_serializer, 404: task_not_found_serializer})
     @action(detail=False, url_path=f"status/({TASK_ID_PARAM})")
-    def status(self, request, task_id=None):
+    def status(self, request, task_id=None, bypass_verification=False):
         """
         Returns the status of the passed in task id
         """
-
-        result = AsyncResult(task_id)
-        if result.name is not None and result.name.endswith(self.task_name) is False:
+        if bypass_verification is False and (
+            self.__assert_id_belongs_to_task(task_id) is False
+        ):
             return Response(
                 {"msg": f"this task id is not valid for '{self.task_name}' task"},
                 status=status.HTTP_404_NOT_FOUND
             )
-        return Response({"task_id": result.id, "status": result.state, "name": result.name})
+
+        result = AsyncResult(task_id)
+        return Response({
+            "task_id": result.id,
+            "status": result.state,
+        })
 
     @extend_schema(responses={200: task_status_serializer})
     @action(detail=False)
@@ -116,4 +122,21 @@ class AbstractCeleryTaskViewSet(viewsets.GenericViewSet, ABC):
         reccommended for child classes to override this method and call the
         super method but specify the documentation there
         """
-        pass
+        if self.__assert_id_belongs_to_task(task_id) is not True:
+            return self.status(request, task_id, bypass_verification=True)
+
+        return self.get_result(task_id)
+
+    def __assert_id_belongs_to_task(self, task_id):
+        """
+        Asserts that the given task id is associated with the current celery
+        function
+
+        Sometimes when the task state is PENDING, we dont know if the id is a
+        legit task or not. In that case we'll let respond with None.
+        """
+        result = AsyncResult(task_id)
+        if result.name is None:
+            return None
+        return result.name.endswith(self.task_name)
+
