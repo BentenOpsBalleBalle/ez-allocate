@@ -98,6 +98,7 @@ class AbstractCeleryTaskViewSet(viewsets.GenericViewSet, ABC):
             "status": result.state,
         })
 
+    @extend_schema(description="creates a task instance and returns its id")
     @extend_schema(responses={200: task_status_serializer})
     @action(detail=False)
     def create_task(self, request, *args, **kwargs):
@@ -152,7 +153,16 @@ class ExportAllotmentsToCSVViewSet(AbstractCeleryTaskViewSet):
     def start_task(self, *args, **kwargs) -> AsyncResult:
         return self.task.delay()
 
-    # @extend_schema(responses={200: OpenApiTypes.BINARY}, description="dummy")
+    @extend_schema(
+        description="this endpoint fetches the result for the task"
+        " and returns it. If the task is in progress, returns its status"
+    )
+    @extend_schema(
+        responses={
+            (200, 'text/csv'): OpenApiTypes.BINARY,
+            202: task_status_serializer
+        },
+    )
     @action(detail=False, url_path=f"results/({TASK_ID_PARAM})")
     def results(self, request, task_id=None):
         return super().results(request, task_id)
@@ -165,7 +175,10 @@ class ExportAllotmentsToCSVViewSet(AbstractCeleryTaskViewSet):
         file.save()
 
         response = Response(
-            headers={"Content-Disposition": f"attachment; filename={file.filename}"}
+            headers={
+                "Content-Disposition": f"attachment; filename={file.filename}",
+                "Content-Type": "text/csv; charset=utf-8"
+            }
         )
         response.content = file.file
         return response
