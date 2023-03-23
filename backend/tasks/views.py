@@ -4,9 +4,28 @@ from typing import Union
 from celery import Task
 from celery.local import PromiseProxy
 from celery.result import AsyncResult
-from rest_framework import viewsets
+from drf_spectacular.utils import extend_schema, inline_serializer
+from rest_framework import serializers, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework import status
+
+import tasks.tasks as celery_tasks
+
+task_status_serializer = inline_serializer(
+    name="CeleryTaskStatusResponse",
+    fields={
+        "task_id":
+        serializers.UUIDField(),
+        "status":
+        serializers.ChoiceField(
+            choices=["SUCCESS", "FAILURE", "RETRY", "STARTED", "PENDING"]
+        )
+    }
+)
+task_not_found_serializer = inline_serializer(
+    name="TaskNotFoundResponse", fields={"msg": serializers.CharField()}
+)
 
 # https://ihateregex.io/expr/uuid/
 TASK_ID_PARAM = r"?P<task_id>[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}"
@@ -41,7 +60,7 @@ class AbstractCeleryTaskViewSet(viewsets.GenericViewSet, ABC):
         return self.task.__name__
 
     @abstractmethod
-    def create_task(self, *args, **kwargs) -> AsyncResult:
+    def start_task(self, *args, **kwargs) -> AsyncResult:
         """
         This method is responsible for initiating/calling the task.
 
@@ -58,8 +77,10 @@ class AbstractCeleryTaskViewSet(viewsets.GenericViewSet, ABC):
         """
         pass
 
+
+    @extend_schema(responses={200: task_status_serializer})
     @action(detail=False)
-    def create(self, request, *args, **kwargs):
+    def create_task(self, request, *args, **kwargs):
         """
         This method will be inherited by all the child viewsets and is
         responsible for creating a task and returning the task's id to the
@@ -67,11 +88,7 @@ class AbstractCeleryTaskViewSet(viewsets.GenericViewSet, ABC):
         """
         # TODO: in future prevent the same user from creating the task if that
         # task is already created and not completed
-        result = self.create_task(*args, **kwargs)
-        return Response({
-            "task_id": result.id,
-            "status": result.state,
-        })
+        result = self.start_task(*args, **kwargs)
 
     @action(detail=False, url_path=f"results/({TASK_ID_PARAM})")
     def results(self, request, task_id=None):
