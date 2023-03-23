@@ -126,7 +126,9 @@ class AbstractCeleryTaskViewSet(viewsets.GenericViewSet, ABC):
         super method but specify the documentation there
         """
         if self.__assert_id_belongs_to_task(task_id) is not True:
-            return self.status(request, task_id, bypass_verification=True)
+            response = self.status(request, task_id, bypass_verification=True)
+            response.status_code = 202
+            return response
 
         return self.get_result(task_id)
 
