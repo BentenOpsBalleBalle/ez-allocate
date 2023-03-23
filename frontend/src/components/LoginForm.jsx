@@ -1,8 +1,7 @@
 import { useForm } from "react-hook-form";
-import Client from "../helpers/Client";
+import { request } from "../helpers/Client";
 
 function LoginForm() {
-    const client = new Client();
     const {
         register,
         handleSubmit,
@@ -10,7 +9,7 @@ function LoginForm() {
         formState: { errors },
     } = useForm();
     const onSubmit = async (data) => {
-        const res = await client.createUrl({
+        const res = await request.send({
             url: "http://localhost:3000/auth/signin",
             method: "POST",
             body: {
@@ -18,7 +17,7 @@ function LoginForm() {
                 password: data.password,
             },
         });
-        client.setToken(res.data.token);
+        request.setToken(res.data.token);
     };
 
     return (

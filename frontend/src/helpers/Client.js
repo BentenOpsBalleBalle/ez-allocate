@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export default class Client {
+class Client {
     static instance;
 
     constructor() {
@@ -10,7 +10,7 @@ export default class Client {
         Client.instance = this;
     }
 
-    createUrl({ url, method, body = {}, headers = {}, service }) {
+    send({ url, method, body = {}, headers = {}, service }) {
         if (!this.token) {
             this.token = null;
         }
@@ -37,3 +37,5 @@ export default class Client {
         this.token = token;
     }
 }
+
+export const request = new Client();
