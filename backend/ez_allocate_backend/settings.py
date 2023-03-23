@@ -41,8 +41,11 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173"
 ]
-CORS_ALLOWED_ORIGINS.extend(getenv("CORS_ALLOWED_ORIGINS", "").split(","))
-
+# yapf: enable
+CORS_ALLOWED_ORIGINS.extend(
+    i for i in getenv("CORS_ALLOWED_ORIGINS", "").split(",") if i != ""
+)
+# yapf: disable
 # REST FRAMEWORK SETTINGS
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
