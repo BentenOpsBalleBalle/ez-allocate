@@ -4,20 +4,27 @@ import { useState } from "react";
 import { Pagination } from "../components/common/Pagination";
 import FetchingIndicator from "../components/common/FetchingIndicator";
 import { useNavigate } from "react-router-dom";
-import setColor from "../helpers/setColor";
-import axios from "axios";
+import { Drawer } from "@geist-ui/core";
+import { FiSearch } from "react-icons/fi";
+import { CustomSearch } from "../components/common/CustomSearch";
+import { TeacherCard } from "../components/Teacher Components/TeacherCard";
+
+// import axios from "axios";
 
 const client = new Client();
 
 const getTeachers = async (page) => {
     return await client.createUrl({
-        url: `http://localhost:3000/teachers?page=${page}&limit=8`,
+        url: `api/teachers/?page=${page}`,
         method: "GET",
+        service: "allocate",
     });
 };
 
 function TeachersPage() {
     const [page, setPage] = useState(1);
+    const [search, setSearch] = useState(false);
+    const navigate = useNavigate();
     const teachersQuery = useQuery(
         ["teachers", { page }],
         () => getTeachers(page),
@@ -38,59 +45,55 @@ function TeachersPage() {
 
     return (
         <div>
-            <div className="title text-[35px] ml-[30px] mr-[15px] font-bold flex items-center">
-                T E A C H E R S
-                <FetchingIndicator />
+            <div className="title text-[35px] ml-[30px] mr-[15px] font-bold flex justify-between items-center">
+                <div>
+                    T E A C H E R S
+                    <FetchingIndicator />
+                </div>
+
+                <div
+                    className="mr-12 text-2xl cursor-pointer"
+                    onClick={() => setSearch(true)}
+                >
+                    <FiSearch />
+                </div>
             </div>
+
+            <Drawer
+                visible={search}
+                onClose={() => setSearch(false)}
+                placement="right"
+
+                // height="100%"
+            >
+                <Drawer.Title>Search</Drawer.Title>
+                <Drawer.Subtitle>Look for teacher</Drawer.Subtitle>
+                <Drawer.Content>
+                    <CustomSearch
+                        searchFor="teachers"
+                        onSelect={(value) => {
+                            console.log(value);
+                            navigate(`/teachers/${value}`);
+                        }}
+                        width="400px"
+                    />
+                </Drawer.Content>
+            </Drawer>
 
             {teachersQuery.isLoading ? null : (
                 <div className="flex mt-6 flex-wrap gap-8  justify-center">
-                    {teachersQuery.data.data.map((teacher) => (
+                    {teachersQuery.data.data.results.map((teacher) => (
                         <TeacherCard
-                            key={teacher.id.$oid}
+                            key={teacher.id}
                             name={teacher.name}
                             assigned_status={teacher.assigned_status}
-                            preffered_mode={teacher.preffered_mode}
-                            id={teacher.id.$oid}
+                            preferred_mode={teacher.preferred_mode}
+                            id={teacher.id}
                         />
                     ))}
                 </div>
             )}
             <Pagination setPage={setPage} page={page} query={teachersQuery} />
-        </div>
-    );
-}
-
-function TeacherCard({ name, preffered_mode, id, assigned_status }) {
-    const navigate = useNavigate();
-    const handleClick = () => {
-        navigate(`/teachers/${id}`);
-    };
-    return (
-        <div
-            onClick={handleClick}
-            className="w-72  border relative shadow-xl rounded-xl  flex flex-col gap-y-2 cursor-pointer"
-        >
-            <img
-                src={`https://api.dicebear.com/5.x/initials/svg?seed=${name}&backgroundColor=${setColor(
-                    assigned_status
-                )}`}
-                alt="login"
-                className="h-40 w-72 rounded-xl object-cover"
-            />
-
-            <div className="text-l font-sans font-bold ml-2">{name}</div>
-            <div className="flex  items-center text-center">
-                <div className="w-8 h-8 rounded-full bg-red-100">
-                    {preffered_mode[0]}
-                </div>
-                <div className="w-8 h-8 rounded-full bg-red-100">
-                    {preffered_mode[1]}
-                </div>
-                <div className="w-8 h-8 rounded-full bg-red-100">
-                    {preffered_mode[2]}
-                </div>
-            </div>
         </div>
     );
 }

@@ -7,6 +7,8 @@ on:
       - ".github/workflows/backend-ci.yml"
   pull_request:
     branches: [ "main" ]
+    paths:
+      - "**.py"
   
   # publish on releases, e.g. v2.1.13 (image tagged as "2.1.13" - "v" prefix is removed)
   release:
