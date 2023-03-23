@@ -10,6 +10,8 @@ from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from common_models.models import CeleryFileResults
+
 task_status_serializer = inline_serializer(
     name="CeleryTaskStatusResponse",
     fields={
@@ -140,3 +142,30 @@ class AbstractCeleryTaskViewSet(viewsets.GenericViewSet, ABC):
             return None
         return result.name.endswith(self.task_name)
 
+
+class ExportAllotmentsToCSVViewSet(AbstractCeleryTaskViewSet):
+
+    @property
+    def task(self) -> Union[PromiseProxy, Task]:
+        return celery_tasks.export_allotments_csv
+
+    def start_task(self, *args, **kwargs) -> AsyncResult:
+        return self.task.delay()
+
+    # @extend_schema(responses={200: OpenApiTypes.BINARY}, description="dummy")
+    @action(detail=False, url_path=f"results/({TASK_ID_PARAM})")
+    def results(self, request, task_id=None):
+        return super().results(request, task_id)
+
+    def get_result(self, task_id: str) -> Response:
+        result = AsyncResult(task_id)
+        file_id = result.result
+        file = CeleryFileResults.objects.get(id=file_id)
+        file.has_been_downloaded_yet = True
+        file.save()
+
+        response = Response(
+            headers={"Content-Disposition": f"attachment; filename={file.filename}"}
+        )
+        response.content = file.file
+        return response
