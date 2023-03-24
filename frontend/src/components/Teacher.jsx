@@ -14,7 +14,7 @@ const Teacher = () => {
     const teacherAllotmentsQuery = useQuery(
         ["teachers", +id, "allotments"],
         () =>
-            client.send({
+            request.send({
                 url: `api/teachers/${id}/allotments`,
                 method: "GET",
                 service: "allocate",
