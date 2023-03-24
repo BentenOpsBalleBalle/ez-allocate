@@ -61,7 +61,7 @@ const Subject = () => {
     // console.log(subjectQuery.data.data);
     return (
         <div className="w-screen px-4">
-            <div className="flex justify-between items-center pt-2 w-full">
+            <div className="flex flex-col gap-y-4 md:flex-row justify-between items-center pt-2 w-full">
                 <div className="text-2xl font-bold">Assign Teachers</div>
                 {/* {console.log(subjectQuery.data.data)} */}
                 <div className="flex gap-x-4">
@@ -93,8 +93,8 @@ const Subject = () => {
                 {choiceQuery.isLoading ? (
                     <Spinner />
                 ) : (
-                    <div className="mt-4">
-                        <div className="flex gap-8 flex-wrap">
+                    <div className="mt-8">
+                        <div className="flex gap-8 flex-wrap justify-center ">
                             {choiceQuery.data.data.map((choice) => {
                                 return (
                                     <AssignTeacherCard
