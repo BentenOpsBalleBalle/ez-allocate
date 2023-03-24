@@ -29,8 +29,8 @@ function SubjectsPage() {
 
     return (
         <div className="w-screen h-screen pt-2  overflow-x-hidden">
-            <div className="flex justify-between px-8 items-center">
-                <div className="flex gap-x-[100px] items-center ">
+            <div className="flex flex-col lg:flex-row  gap-y-4 justify-between px-8 items-center">
+                <div className="flex flex-col  md:flex-row gap-y-2.5 gap-x-[100px] items-center ">
                     <div className="title font-bold truncate relative flex items-center gap-x-4">
                         <div className=" text-[40px]">S U B J E C T S</div>
 
