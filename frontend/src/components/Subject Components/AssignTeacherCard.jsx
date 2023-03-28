@@ -151,7 +151,7 @@ const AssignTeacherCard = ({ choice_number, teacher, subjectData }) => {
                 <div className="absolute top-0 right-0 flex items-start">
                     <div className="mt-[4px] mr-1">
                         {teacherAllotmentsQuery.isLoading ||
-                        teacherAllotmentsQuery.data?.data.length < 2 ? null : (
+                        teacherAllotmentsQuery.data?.data.length < 3 ? null : (
                             <div>
                                 <Tooltip
                                     type="warning"
