@@ -45,17 +45,12 @@ export const CustomSearch = ({ searchFor, onSelect, width }) => {
     const [options, setOptions] = useState();
     const [searching, setSearching] = useState(false);
     const [searchValue, setSearchValue] = useState("");
-    const searchQuery = useQuery(
-        ["search", searchFor, searchValue],
-        () =>
-            request.send({
-                url: `api/search/${searchFor}/?q=${searchValue}`,
-                method: "GET",
-                service: "allocate",
-            }),
-        {
-            enabled: searchValue.length >= 2,
-        }
+    const searchQuery = useQuery(["search", searchFor, searchValue], () =>
+        request.send({
+            url: `api/search/${searchFor}/?q=${searchValue}`,
+            method: "GET",
+            service: "allocate",
+        })
     );
 
     const searchHandler = (currentValue) => {
@@ -65,7 +60,7 @@ export const CustomSearch = ({ searchFor, onSelect, width }) => {
             setSearching(true);
         } else {
             setSearching(false);
-            console.log(searchQuery.data);
+            console.log(searchQuery.data.data);
             if (searchFor === "subjects") {
                 const customOptions = searchQuery.data.data.map((query) =>
                     subjectOption(
