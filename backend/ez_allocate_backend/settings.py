@@ -103,6 +103,7 @@ INSTALLED_APPS = [
     'api',
     'tasks',
     'rest_framework',
+    'django_filters',
     'corsheaders',
     'drf_spectacular',
     'django.contrib.admin',
