@@ -276,5 +276,6 @@ class SearchViewSet(viewsets.ViewSet):
         """
         query = request.query_params.get("q", "")
         data = self.__search(Teacher, query, ["name", "email"])
-        serializer = serializers.TeacherSerializer(data, many=True)
+        sorted_by_remaining = sorted(data, key=lambda teach: teach.current_load)
+        serializer = serializers.TeacherSerializer(sorted_by_remaining, many=True)
         return Response(serializer.data)
