@@ -14,14 +14,6 @@ export const CustomSearch = ({ searchFor, onSelect, width }) => {
                 <Text b my="5px">
                     {courseCode} - {courseName}
                 </Text>
-                {/* <Button
-                    auto
-                    type="success-light"
-                    onClick={() => customOnSelect(id)}
-                    height="20px"
-                >
-                    Go
-                </Button> */}
             </div>
         </AutoComplete.Option>
     );
@@ -54,34 +46,38 @@ export const CustomSearch = ({ searchFor, onSelect, width }) => {
     );
 
     const searchHandler = (currentValue) => {
-        if (!currentValue) return setOptions([]);
+        // if (!currentValue) return setOptions([]);
+        console.log(currentValue);
         setSearchValue(currentValue);
-        if (searchQuery.isLoading) {
+        if (searchQuery.isFetching) {
             setSearching(true);
-        } else {
+        }
+
+        if (searchQuery.data.data) {
             setSearching(false);
-            console.log(searchQuery.data.data);
-            if (searchFor === "subjects") {
-                const customOptions = searchQuery.data.data.map((query) =>
-                    subjectOption(
-                        query.name,
-                        query.course_code,
-                        query.allotment_status,
-                        query.id
-                    )
-                );
-                setOptions(customOptions);
-            } else if (searchFor === "teachers") {
-                const customOptions = searchQuery.data.data.map((query) =>
-                    teacherOption(
-                        query.name,
-                        query.email,
-                        query.assigned_status,
-                        query.id
-                    )
-                );
-                setOptions(customOptions);
-            }
+        }
+
+        // console.log(searchQuery.data.data);
+        if (searchFor === "subjects") {
+            const customOptions = searchQuery.data?.data?.map((query) =>
+                subjectOption(
+                    query.name,
+                    query.course_code,
+                    query.allotment_status,
+                    query.id
+                )
+            );
+            setOptions(customOptions);
+        } else if (searchFor === "teachers") {
+            const customOptions = searchQuery.data?.data?.map((query) =>
+                teacherOption(
+                    query.name,
+                    query.email,
+                    query.assigned_status,
+                    query.id
+                )
+            );
+            setOptions(customOptions);
         }
 
         // setOptions(relatedOptions);
