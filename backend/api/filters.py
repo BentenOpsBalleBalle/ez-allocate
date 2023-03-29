@@ -11,7 +11,7 @@ class SubjectFilter(filters.FilterSet):
         field_name="course_type", choices=Subject.CourseType.choices
     )
     _choices = Subject.objects.values_list('programme', flat=True).distinct()
-    programme = filters.ChoiceFilter(choices=[(i, i) for i in _choices])
+    programme = CourseTypeINFilter(choices=[(i, i) for i in _choices])
 
     class Meta:
         model = Subject
