@@ -70,7 +70,7 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
         Returns all the available `programme` choices based on database entries
         """
         return Response(
-            [dict(zip(('param_value', 'name'), i)) for i in SubjectFilter._choices]
+            [dict(zip(('param_value', 'name'), (i, i))) for i in SubjectFilter._choices]
         )
 
     @extend_schema(responses={200: serializers.SubjectChoicesSetSerializer(many=True)})
