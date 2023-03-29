@@ -1,22 +1,19 @@
-//how to remove manually added teacher
-
-import Client from "../helpers/Client";
+import { request } from "../helpers/Client";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import AssignTeacherCard from "./Subject Components/AssignTeacherCard";
 import { useParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Spinner, useToasts, Tag } from "@geist-ui/core";
 import { CustomSearch } from "./common/CustomSearch";
-
-const client = new Client();
-
+import { ErrorBoundary } from "react-error-boundary";
+import AssignTeacherCustomError from "./Subject Components/AssignTeacherCustomError";
 const Subject = () => {
     const queryClient = useQueryClient();
     const { id } = useParams();
     const { setToast } = useToasts();
 
     const subjectQuery = useQuery(["subjects", +id], () =>
-        client.createUrl({
+        request.send({
             url: `api/subjects/${id}`,
             method: "GET",
             service: "allocate",
@@ -24,8 +21,7 @@ const Subject = () => {
     );
 
     const choiceQuery = useQuery(["subjects", +id, "choices"], () => {
-        console.log("okokokok");
-        return client.createUrl({
+        return request.send({
             url: `api/subjects/${id}/choices`,
             method: "GET",
             service: "allocate",
@@ -34,7 +30,7 @@ const Subject = () => {
 
     const addTeacherMutation = useMutation(
         (teacherId) => {
-            return client.createUrl({
+            return request.send({
                 url: `api/subjects/${id}/choices/modify/${teacherId}/`,
                 method: "POST",
                 service: "allocate",
@@ -62,23 +58,23 @@ const Subject = () => {
     const { isLoading, error } = subjectQuery;
     if (isLoading) return <div>Loading..</div>;
     if (error) return <div>Error: {error.message}</div>;
-    console.log(subjectQuery.data.data);
+    // console.log(subjectQuery.data.data);
     return (
         <div className="w-screen px-4">
-            <div className="flex justify-between items-center pt-2 w-full">
+            <div className="flex flex-col gap-y-4 md:flex-row justify-between items-center pt-2 w-full">
                 <div className="text-2xl font-bold">Assign Teachers</div>
                 {/* {console.log(subjectQuery.data.data)} */}
                 <div className="flex gap-x-4">
                     <Tag invert>
-                        {subjectQuery.data.data.allotted_lecture_hours}/
+                        L: {subjectQuery.data.data.allotted_lecture_hours}/
                         {subjectQuery.data.data.total_lecture_hours}
                     </Tag>
                     <Tag invert>
-                        {subjectQuery.data.data.allotted_tutorial_hours}/
+                        T: {subjectQuery.data.data.allotted_tutorial_hours}/
                         {subjectQuery.data.data.total_tutorial_hours}
                     </Tag>
                     <Tag invert>
-                        {subjectQuery.data.data.allotted_practical_hours}/
+                        P: {subjectQuery.data.data.allotted_practical_hours}/
                         {subjectQuery.data.data.total_practical_hours}
                     </Tag>
                 </div>
@@ -93,27 +89,26 @@ const Subject = () => {
                 </div>
             </div>
 
-            {choiceQuery.isLoading ? (
-                <Spinner />
-            ) : (
-                <div className="mt-4">
-                    <div className="flex gap-8 flex-wrap">
-                        {choiceQuery.data.data.map((choice) => {
-                            return (
-                                <AssignTeacherCard
-                                    key={choice.teacher.id}
-                                    choice_number={choice.choice_number}
-                                    teacher={choice.teacher}
-                                    subjectData={subjectQuery.data.data}
-                                />
-                            );
-                        })}
+            <ErrorBoundary FallbackComponent={AssignTeacherCustomError}>
+                {choiceQuery.isLoading ? (
+                    <Spinner />
+                ) : (
+                    <div className="mt-8">
+                        <div className="flex gap-8 flex-wrap justify-center ">
+                            {choiceQuery.data.data.map((choice) => {
+                                return (
+                                    <AssignTeacherCard
+                                        key={choice.teacher.id}
+                                        choice_number={choice.choice_number}
+                                        teacher={choice.teacher}
+                                        subjectData={subjectQuery.data.data}
+                                    />
+                                );
+                            })}
+                        </div>
                     </div>
-                </div>
-            )}
-            {/* <button onClick={() => addTeacherMutation.mutate()}>
-                Manual Teacher
-            </button> */}
+                )}
+            </ErrorBoundary>
         </div>
     );
 };

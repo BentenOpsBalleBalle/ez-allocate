@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-
+import { Tooltip, Tag } from "@geist-ui/core";
 function SubjectCard({ name, allotmentStatus, id, course_code }) {
     const navigate = useNavigate();
     const handleClick = () => {
@@ -26,6 +26,17 @@ function SubjectCard({ name, allotmentStatus, id, course_code }) {
             </div>
             <div className="title text-[18px] mt-[5px] ml-[10px] mb-[5px] font-bold">
                 {course_code}
+            </div>
+            <div className="absolute flex justify-between gap-x-[70px] items-center">
+                <Tooltip type="secondary" text="Lecture hours to be assigned">
+                    <Tag invert>L : 2</Tag>
+                </Tooltip>
+                <Tooltip type="secondary" text="Tutorial hours to be assigned">
+                    <Tag invert>T : 4</Tag>
+                </Tooltip>
+                <Tooltip type="secondary" text="Practical hours to be assigned">
+                    <Tag invert>P : 6</Tag>
+                </Tooltip>
             </div>
         </div>
     );

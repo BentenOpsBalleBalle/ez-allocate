@@ -1,11 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
-import Client from "../helpers/Client";
+import { request } from "../helpers/Client";
 import Tile from "./Teacher Components/Tile";
 import CircularApexChart from "./Teacher Components/ApexChart";
 import { useState, useMemo } from "react";
-
-const client = new Client();
 
 const Teacher = () => {
     const { id } = useParams();
@@ -16,7 +14,7 @@ const Teacher = () => {
     const teacherAllotmentsQuery = useQuery(
         ["teachers", +id, "allotments"],
         () =>
-            client.createUrl({
+            request.send({
                 url: `api/teachers/${id}/allotments`,
                 method: "GET",
                 service: "allocate",
@@ -36,7 +34,7 @@ const Teacher = () => {
     }, [teacherAllotmentsQuery.data?.data]);
 
     const teacherQuery = useQuery(["teachers", +id], () =>
-        client.createUrl({
+        request.send({
             url: `api/teachers/${id}/`,
             method: "GET",
             service: "allocate",
@@ -48,8 +46,8 @@ const Teacher = () => {
     return teacherQuery.isLoading ? (
         <div>loading...</div>
     ) : (
-        <div className="flex w-screen h-screen items-center justify-between  ">
-            <div className="card relative w-[55%] h-[86%] overflow-y-auto  rounded-md m-10 p-5 shadow-[0_9px_17px_-6px_rgba(0,0,0,0.2)]">
+        <div className="flex flex-col lg:flex-row w-screen h-screen items-center justify-between  ">
+            <div className="card relative w-full h-[60%]  lg:w-[55%] lg:h-[86%] overflow-y-auto  rounded-md m-10 p-5 shadow-[0_9px_17px_-6px_rgba(0,0,0,0.2)]">
                 <div className="text-center  text-[30px] pt-10 font-bold">
                     {teacherQuery.data?.data?.name}
                 </div>
@@ -69,7 +67,7 @@ const Teacher = () => {
                     })
                 )}
             </div>
-            <div className=" w-1/2 h-1/2 mr-10 rounded-md m-10 p-5 shadow-[0_9px_17px_-6px_rgba(0,0,0,0.2)]">
+            <div className="w-full lg:w-1/2 lg:h-1/2 mr-10 rounded-md m-10 p-5 shadow-[0_9px_17px_-6px_rgba(0,0,0,0.2)]">
                 <CircularApexChart
                     lecture={totalLecture}
                     practical={totalPractical}

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import Client from "../helpers/Client";
+import { request } from "../helpers/Client";
 import FetchingIndicator from "../components/common/FetchingIndicator";
 import { Pagination } from "../components/common/Pagination";
 import { Drawer } from "@geist-ui/core";
@@ -8,8 +8,7 @@ import { FiSearch } from "react-icons/fi";
 import SubjectCard from "../components/Subject Components/SubjectCard";
 import { CustomSearch } from "../components/common/CustomSearch";
 import { useNavigate } from "react-router-dom";
-
-export const client = new Client();
+import ExportComp from "../components/ExportComp";
 
 function SubjectsPage() {
     const navigate = useNavigate();
@@ -18,7 +17,7 @@ function SubjectsPage() {
     const subjectsQuery = useQuery(
         ["subjects", { page }],
         () =>
-            client.createUrl({
+            request.send({
                 url: `api/subjects/?page=${page}`,
                 method: "GET",
                 service: "allocate",
@@ -28,14 +27,10 @@ function SubjectsPage() {
         }
     );
 
-    if (subjectsQuery.isError) {
-        return <p>Error: {subjectsQuery.error.message}</p>;
-    }
-
     return (
         <div className="w-screen h-screen pt-2  overflow-x-hidden">
-            <div className="flex justify-between px-8 items-center">
-                <div className="flex gap-x-[100px] items-center ">
+            <div className="flex flex-col lg:flex-row  gap-y-4 justify-between px-8 items-center">
+                <div className="flex flex-col  md:flex-row gap-y-2.5 gap-x-[100px] items-center ">
                     <div className="title font-bold truncate relative flex items-center gap-x-4">
                         <div className=" text-[40px]">S U B J E C T S</div>
 
@@ -56,6 +51,9 @@ function SubjectsPage() {
                             <div className="w-5 h-5 bg-yellow-400 rounded-sm" />
                             <div>PARTIAL</div>
                         </div>
+                    </div>
+                    <div>
+                        <ExportComp />
                     </div>
                 </div>
 
@@ -95,19 +93,27 @@ function SubjectsPage() {
                 </div>
             </div>
 
-            {subjectsQuery.isLoading ? null : (
-                <div className="flex mt-6 flex-wrap gap-8  justify-center">
-                    {/* {console.log(subjectsQuery.data)} */}
-                    {subjectsQuery.data.data.results.map((subject) => (
-                        <SubjectCard
-                            key={subject.id}
-                            name={subject.name}
-                            allotmentStatus={subject.allotment_status}
-                            id={subject.id}
-                            course_code={subject.course_code}
-                        />
-                    ))}
+            {subjectsQuery.isError ? (
+                <div className="text-red-500 text-center text-xl font-bold">
+                    {subjectsQuery.error.message}
                 </div>
+            ) : (
+                <>
+                    {subjectsQuery.isLoading ? null : (
+                        <div className="flex mt-6 flex-wrap gap-8  justify-center">
+                            {/* {console.log(subjectsQuery.data)} */}
+                            {subjectsQuery.data.data.results.map((subject) => (
+                                <SubjectCard
+                                    key={subject.id}
+                                    name={subject.name}
+                                    allotmentStatus={subject.allotment_status}
+                                    id={subject.id}
+                                    course_code={subject.course_code}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </>
             )}
 
             <Pagination setPage={setPage} page={page} query={subjectsQuery} />
