@@ -3,7 +3,7 @@ import { useState } from "react";
 import { request } from "../helpers/Client";
 import FetchingIndicator from "../components/common/FetchingIndicator";
 import { Pagination } from "../components/common/Pagination";
-import { Drawer, Popover, Tag, Checkbox } from "@geist-ui/core";
+import { Drawer, Popover, Tag, Checkbox, Spinner } from "@geist-ui/core";
 import { FiSearch } from "react-icons/fi";
 import SubjectCard from "../components/Subject Components/SubjectCard";
 import { CustomSearch } from "../components/common/CustomSearch";
@@ -16,33 +16,60 @@ function SubjectsPage() {
     const [search, setSearch] = useState(false);
     const [coursetypeFilters, setCoursetypeFilters] = useState([]);
     const [programmeFilters, setProgrammeFilters] = useState([]);
-    const [searchUsingFilters, setSearchUsingFilters] = useState(false);
+    // const [searchUsingFilters, setSearchUsingFilters] = useState(false);
     const subjectsQuery = useQuery(
-        ["subjects", { page }],
-        () =>
-            request.send({
-                url: `api/subjects/?page=${page}`,
+        ["subjects", { page, coursetypeFilters, programmeFilters }],
+        () => {
+            const courseTypeString =
+                coursetypeFilters.length > 0
+                    ? "&course_type=" + coursetypeFilters.join(",")
+                    : "";
+            const programmeString =
+                programmeFilters.length > 0
+                    ? "&programme=" + programmeFilters.join(",")
+                    : "";
+
+            console.log(courseTypeString, programmeString);
+            return request.send({
+                url: `api/subjects/?page=${page}${courseTypeString}${programmeString}`,
                 method: "GET",
                 service: "allocate",
-            }),
+            });
+        },
         {
             keepPreviousData: true,
         }
     );
 
-    const typeContent = [
-        { label: "Core", value: "core" },
-        { label: "Elective", value: "elec" },
-        { label: "Specialization", value: "spec" },
-    ];
+    const getCourseTypeChoicesQuery = useQuery(
+        ["subjects", "course_types"],
+        () =>
+            request.send({
+                url: `api/subjects/get_course_type_choices/`,
+                method: "GET",
+                service: "allocate",
+            }),
+        {
+            staleTime: Infinity,
+        }
+    );
 
-    const programmeContent = [
-        { label: "Btech", value: "btech" },
-        { label: "Mtech", value: "mtech" },
-        { label: "Phd", value: "phd" },
-    ];
+    const getProgrammeChoicesQuery = useQuery(
+        ["subjects", "programmes"],
+        () =>
+            request.send({
+                url: `api/subjects/get_programme_choices/`,
+                method: "GET",
+                service: "allocate",
+            }),
+        {
+            staleTime: Infinity,
+        }
+    );
 
-    const CheckBoxContent = (content, state, setState) => {
+    const CheckBoxContent = (query, state, setState) => {
+        if (query.isLoading) return <Spinner />;
+        const content = query.data.data;
         return (
             <div className="p-4">
                 <Checkbox.Group
@@ -51,8 +78,8 @@ function SubjectsPage() {
                 >
                     <div className="flex flex-col gap-y-4 items-start">
                         {content.map((item, idx) => (
-                            <Checkbox key={idx} value={item.value}>
-                                {item.label}
+                            <Checkbox key={idx} value={item.param_value}>
+                                {item.name}
                             </Checkbox>
                         ))}
                     </div>
@@ -60,15 +87,6 @@ function SubjectsPage() {
             </div>
         );
     };
-
-    const handler = (value) => {
-        // console.log(value);
-        if (value == false) {
-            console.log(programmeFilters, coursetypeFilters);
-            setSearchUsingFilters(true);
-        }
-    };
-
     return (
         <div className="w-screen h-screen pt-2  overflow-x-hidden">
             <div className="flex flex-col lg:flex-row  gap-y-4 justify-between px-8 items-center">
@@ -137,10 +155,9 @@ function SubjectsPage() {
 
             <div className="flex justify-center mt-6 gap-x-8">
                 <Popover
-                    // onVisibleChange={handler}
                     content={() =>
                         CheckBoxContent(
-                            typeContent,
+                            getCourseTypeChoicesQuery,
                             coursetypeFilters,
                             setCoursetypeFilters
                         )
@@ -151,10 +168,9 @@ function SubjectsPage() {
                 </Popover>
 
                 <Popover
-                    onVisibleChange={handler}
                     content={() =>
                         CheckBoxContent(
-                            programmeContent,
+                            getProgrammeChoicesQuery,
                             programmeFilters,
                             setProgrammeFilters
                         )
@@ -173,7 +189,6 @@ function SubjectsPage() {
                 <>
                     {subjectsQuery.isLoading ? null : (
                         <div className="flex mt-6 flex-wrap gap-8  justify-center">
-                            {/* {console.log(subjectsQuery.data)} */}
                             {subjectsQuery.data.data.results.map((subject) => (
                                 <SubjectCard
                                     key={subject.id}
@@ -181,6 +196,8 @@ function SubjectsPage() {
                                     allotmentStatus={subject.allotment_status}
                                     id={subject.id}
                                     course_code={subject.course_code}
+                                    course_type={subject.course_type}
+                                    programme={subject.programme}
                                 />
                             ))}
                         </div>
