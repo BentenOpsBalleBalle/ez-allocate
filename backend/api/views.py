@@ -315,7 +315,11 @@ class SearchViewSet(viewsets.ViewSet):
         Searches over the fields: `name`, `email`
         """
         query = request.query_params.get("q", "")
-        data = self.__search(Teacher, query, ["name", "email"])
-        sorted_by_remaining = sorted(data, key=lambda teach: teach.current_load)
+        data = self.__search(Teacher, query, ["name", "email"], limit=None)
+        sorted_by_remaining = data.prefetch_related('allotment_set').order_by(
+            'allotment__allotted_lecture_hours',
+            'allotment__allotted_tutorial_hours',
+            'allotment__allotted_practical_hours',
+        )[:10]
         serializer = serializers.TeacherSerializer(sorted_by_remaining, many=True)
         return Response(serializer.data)
