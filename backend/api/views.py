@@ -5,12 +5,15 @@ from common_models.models import Allotment, Choices, Subject, Teacher
 from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
-from drf_spectacular.utils import OpenApiParameter, extend_schema
+from django_filters import rest_framework as filters
+from drf_spectacular.utils import (OpenApiParameter, extend_schema, inline_serializer)
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.request import Request
 from rest_framework.response import Response
+
+from .filters import SubjectFilter
 
 # Create your views here.
 
@@ -23,6 +26,8 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Subject.objects.all()
     serializer_class = serializers.SubjectSerializer
     pagination_class = CustomPagination
+    filter_backends = (filters.DjangoFilterBackend, )
+    filterset_class = SubjectFilter
 
     @extend_schema(responses={200: serializers.SubjectListSerializer})
     def list(self, request, *args, **kwargs):
@@ -35,8 +40,45 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
         self.serializer_class = old
         return response
 
+    @extend_schema(
+        responses={
+            200:
+            inline_serializer(
+                name="CourseTypeOptions",
+                fields={
+                    "name": serializers.serializers.CharField(),
+                    "param_value": serializers.serializers.CharField(max_length=4)
+                },
+                many=True
+            )
+        }
+    )
+    @action(detail=False, pagination_class=None, filterset_class=None)
+    def get_course_type_choices(self, request):
+        """
+        Returns the available `course_type` choices
+        """
+        return Response(
+            [dict(zip(('param_value', 'name'), i)) for i in Subject.CourseType.choices]
+        )
+
+    @extend_schema(
+        responses={
+            200:
+            serializers.serializers.ListSerializer(
+                child=serializers.serializers.CharField()
+            )
+        }
+    )
+    @action(detail=False, pagination_class=None, filterset_class=None)
+    def get_programme_choices(self, request):
+        """
+        Returns all the available `programme` choices based on database entries
+        """
+        return Response(SubjectFilter._choices)
+
     @extend_schema(responses={200: serializers.SubjectChoicesSetSerializer(many=True)})
-    @action(detail=True, pagination_class=None)
+    @action(detail=True, pagination_class=None, filterset_class=None)
     def choices(self, request, pk=None):
         """
         Returns the list of teachers that have selected the current subject
@@ -74,7 +116,8 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
         detail=True,
         methods=["POST", "DELETE"],
         url_path=r'choices/modify/(?P<teacher>\w+)',
-        pagination_class=None
+        pagination_class=None,
+        filterset_class=None
     )
     def choices_modify(self, request: Request, pk=None, teacher=None):
         subject = self.get_object()
@@ -111,7 +154,7 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
         return self.choices(request, pk=pk)
 
     @extend_schema(responses={200: serializers.SubjectAllotmentSetSerializer})
-    @action(detail=True, pagination_class=None)
+    @action(detail=True, pagination_class=None, filterset_class=None)
     def allotments(self, request, pk=None):
         """
         Returns the list of teachers that have been allotted to the current subject
@@ -125,7 +168,7 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
         request=serializers.CommitLTPSerializer,
         responses={200: serializers.SubjectAllotmentSetSerializer(many=True)}
     )
-    @action(detail=True, methods=["POST"], pagination_class=None)
+    @action(detail=True, methods=["POST"], pagination_class=None, filterset_class=None)
     def commit_ltp(self, request, pk=None):
         """
         modifies the allotment entries for the given subject
@@ -169,7 +212,8 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
         detail=True,
         methods=["DELETE"],
         url_path=r"commit_ltp/(?P<teacher_id>\w+)",
-        pagination_class=None
+        pagination_class=None,
+        filterset_class=None
     )
     def commit_ltp_delete(self, request, pk=None, teacher_id=None):
         allottment_instance = get_object_or_404(
@@ -276,5 +320,6 @@ class SearchViewSet(viewsets.ViewSet):
         """
         query = request.query_params.get("q", "")
         data = self.__search(Teacher, query, ["name", "email"])
-        serializer = serializers.TeacherSerializer(data, many=True)
+        sorted_by_remaining = sorted(data, key=lambda teach: teach.current_load)
+        serializer = serializers.TeacherSerializer(sorted_by_remaining, many=True)
         return Response(serializer.data)
