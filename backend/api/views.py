@@ -42,14 +42,15 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
 
     @extend_schema(
         responses={
-            200:
-            inline_serializer(
-                name="CourseTypeOptions",
-                fields={
-                    "name": serializers.serializers.CharField(),
-                    "param_value": serializers.serializers.CharField(max_length=4)
-                },
-                many=True
+            200: (
+                filter_choices_serializer := inline_serializer(
+                    name="CourseTypeOptions",
+                    fields={
+                        "name": serializers.serializers.CharField(),
+                        "param_value": serializers.serializers.CharField(max_length=4)
+                    },
+                    many=True
+                )
             )
         }
     )
@@ -62,20 +63,15 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
             [dict(zip(('param_value', 'name'), i)) for i in Subject.CourseType.choices]
         )
 
-    @extend_schema(
-        responses={
-            200:
-            serializers.serializers.ListSerializer(
-                child=serializers.serializers.CharField()
-            )
-        }
-    )
+    @extend_schema(responses={200: filter_choices_serializer})
     @action(detail=False, pagination_class=None, filterset_class=None)
     def get_programme_choices(self, request):
         """
         Returns all the available `programme` choices based on database entries
         """
-        return Response(SubjectFilter._choices)
+        return Response(
+            [dict(zip(('param_value', 'name'), i)) for i in SubjectFilter._choices]
+        )
 
     @extend_schema(responses={200: serializers.SubjectChoicesSetSerializer(many=True)})
     @action(detail=True, pagination_class=None, filterset_class=None)
