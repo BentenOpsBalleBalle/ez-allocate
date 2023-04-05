@@ -1,4 +1,11 @@
 {
     "ignoreCommand": "git diff HEAD^ HEAD --quiet .",
-    "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+    "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
+    "redirects": [
+        {
+            "source": "/docs",
+            "destination": "https://ez-allocate-api-dev.teamrocketballeballe.ml/docs/",
+            "permanent": true
+        },
+    ]
 }
