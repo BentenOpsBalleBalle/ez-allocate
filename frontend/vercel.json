@@ -6,6 +6,6 @@
             "source": "/docs",
             "destination": "https://ez-allocate-api-dev.teamrocketballeballe.ml/docs/",
             "permanent": true
-        },
+        }
     ]
 }
