@@ -256,3 +256,9 @@ class CeleryFileResults(models.Model):
     file = models.BinaryField()
     created_at = models.DateTimeField(auto_now_add=True)
     has_been_downloaded_yet = models.BooleanField(default=False)
+
+    def __str__(self) -> str:
+        return (
+            f"file_id={self.id}, filename={self.filename}, created_at={self.created_at}, "
+            f"downloaded={self.has_been_downloaded_yet}"
+        )
