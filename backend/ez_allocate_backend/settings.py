@@ -47,6 +47,10 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ALLOWED_ORIGINS.extend(
     i for i in getenv("CORS_ALLOWED_ORIGINS", "").split(",") if i != ""
 )
+CSRF_TRUSTED_ORIGINS = []
+CSRF_TRUSTED_ORIGINS.extend(
+    i for i in getenv("CORS_ALLOWED_ORIGINS", "").split(",") if i != ""
+)
 # yapf: disable
 # REST FRAMEWORK SETTINGS
 REST_FRAMEWORK = {
