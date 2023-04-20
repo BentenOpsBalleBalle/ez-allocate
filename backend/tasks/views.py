@@ -190,5 +190,5 @@ class ExportAllotmentsTeacherSideToCSVViewSet(ExportAllotmentsToCSVViewSet):
     # OOP magik :)
     # i love OOP, when it works the intended way :)))))
     @property
-    def task(self) -> PromiseProxy | Task:
+    def task(self) -> Union[PromiseProxy, Task]:
         return celery_tasks.export_teacher_allotments_csv
