@@ -184,3 +184,11 @@ class ExportAllotmentsToCSVViewSet(AbstractCeleryTaskViewSet):
         )
         response.content = file.file
         return response
+
+
+class ExportAllotmentsTeacherSideToCSVViewSet(ExportAllotmentsToCSVViewSet):
+    # OOP magik :)
+    # i love OOP, when it works the intended way :)))))
+    @property
+    def task(self) -> PromiseProxy | Task:
+        return celery_tasks.export_teacher_allotments_csv
