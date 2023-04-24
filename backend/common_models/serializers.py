@@ -168,18 +168,19 @@ class CommitLTPSerializer(AllotmentSerializer):
 
         current_instance_hours = self.__get_current_instance_hours(subject, teacher)
 
-        total_hours = (
-            allotted_lecture_hours + allotted_practical_hours + allotted_tutorial_hours +
-            -sum(current_instance_hours.values())
-            # subtract current instance's hours from the total hours
-        )
-
-        # validate if hours are feasible by the teacher
-        if teacher.hours_left() < total_hours:
-            raise serializers.ValidationError(
-                "exceeded maximum weekly workload! "
-                f"Teacher workload is already at {teacher.current_load} hours!"
+        if settings.CUSTOM_SETTINGS['DISABLE__TEACHER_WORKLOAD_CHECK'] is False:
+            total_hours = (
+                allotted_lecture_hours + allotted_practical_hours +
+                allotted_tutorial_hours + -sum(current_instance_hours.values())
+                # subtract current instance's hours from the total hours
             )
+
+            # validate if hours are feasible by the teacher
+            if teacher.hours_left() < total_hours:
+                raise serializers.ValidationError(
+                    "exceeded maximum weekly workload! "
+                    f"Teacher workload is already at {teacher.current_load} hours!"
+                )
 
         # validate hours feasible by the subject
         # allotted L, T, P should be less than the subject's limits
