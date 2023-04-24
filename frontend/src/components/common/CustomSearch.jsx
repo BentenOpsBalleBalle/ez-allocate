@@ -18,14 +18,20 @@ export const CustomSearch = ({ searchFor, onSelect, width }) => {
         </AutoComplete.Option>
     );
 
-    const teacherOption = (name, email, status, id) => (
+    const teacherOption = (name, email, status, id, current_load) => (
         <AutoComplete.Option value={id}>
             <div
                 style={{ backgroundColor: `#${setColor(status)}` }}
                 className="w-full p-1.5 my-1 rounded-md "
             >
                 <div className="flex flex-col">
-                    <div className="text-[14px] font-medium">{name}</div>
+                    <div className="flex justify-between ">
+                        <div className="text-[14px] font-medium">{name}</div>
+                        <div className="bg-black text-white font-semibold py-0.5 px-1">
+                            {current_load}
+                        </div>
+                    </div>
+
                     <div className="text-[10px]">{email}</div>
                 </div>
                 {/* <Button type="success-light" onClick={() => customOnSelect(id)}>
@@ -74,7 +80,8 @@ export const CustomSearch = ({ searchFor, onSelect, width }) => {
                     query.name,
                     query.email,
                     query.assigned_status,
-                    query.id
+                    query.id,
+                    query.current_load
                 )
             );
             setOptions(customOptions);
