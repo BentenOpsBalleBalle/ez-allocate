@@ -62,7 +62,10 @@ const Subject = () => {
     return (
         <div className="w-screen px-4">
             <div className="flex flex-col gap-y-4 md:flex-row justify-between items-center pt-2 w-full">
-                <div className="text-2xl font-bold">Assign Teachers</div>
+                <div className="text-2xl font-bold">
+                    {subjectQuery.data.data.name} -{" "}
+                    {subjectQuery.data.data.course_code}
+                </div>
                 {/* {console.log(subjectQuery.data.data)} */}
                 <div className="flex gap-x-4">
                     <Tag invert>
