@@ -98,7 +98,7 @@ function SubjectsPage() {
                             <FetchingIndicator />
                         </div>
                     </div>
-                    <div className="flex gap-x-4">
+                    <div className="hidden lg:flex gap-x-4">
                         <div className="flex gap-x-2 items-center">
                             <div className="w-5 h-5 bg-red-400 rounded-sm" />
                             <div>NONE</div>
