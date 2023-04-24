@@ -5,11 +5,11 @@ import { request } from "../helpers/Client";
 
 const ExportComp = () => {
     const [exporting, setExporting] = useState(false);
-    const downloadFile = (data) => {
+    const downloadFile = (data, filename) => {
         const url = window.URL.createObjectURL(new Blob([data]));
         const link = document.createElement("a");
         link.href = url;
-        link.setAttribute("download", "allottments.csv");
+        link.setAttribute("download", filename);
         document.body.appendChild(link);
         link.click();
         link.remove();
@@ -41,7 +41,7 @@ const ExportComp = () => {
                         service: "allocate",
                     });
                     console.log(resp);
-                    downloadFile(resp.data);
+                    downloadFile(resp.data, "subject_allottments.csv");
                 }
             }, 1000);
         } catch (err) {
@@ -50,10 +50,47 @@ const ExportComp = () => {
         }
     };
 
+    const handleTeacherExport = async () => {
+        setExporting(true);
+        try {
+            const response = await request.send({
+                url: "api/tasks/export_teacher_allotments_csv/create_task/",
+                method: "GET",
+                service: "allocate",
+            });
+            console.log(response, "response1");
+            const taskId = response.data.task_id;
+
+            const tInterval = setInterval(async () => {
+                const response = await request.send({
+                    url: `api/tasks/export_teacher_allotments_csv/status/${taskId}/`,
+                    method: "GET",
+                    service: "allocate",
+                });
+                if (response.data.status === "SUCCESS") {
+                    setExporting(false);
+                    clearInterval(tInterval);
+                    const resp = await request.send({
+                        url: `api/tasks/export_teacher_allotments_csv/results/${taskId}/`,
+                        method: "GET",
+                        service: "allocate",
+                    });
+                    console.log(resp);
+                    downloadFile(resp.data, "teacher_allottments.csv");
+                }
+            }, 1000);
+        } catch (err) {
+            console.log(err);
+            setExporting(false);
+        }
+    };
     return (
         <div>
             <Button
-                onClick={handleExport}
+                onClick={() => {
+                    handleExport();
+                    handleTeacherExport();
+                }}
                 loading={exporting}
                 auto
                 type="secondary"
