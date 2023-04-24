@@ -25,7 +25,7 @@ class AllotmentStatus(models.TextChoices):
     NONE = "NONE"
     PARTIAL = "PART", _('Partial')
     FULL = "FULL"
-    ERROR = "ERRR", _('Error')
+    ERROR = "OVER", _('Extra Full')
 
     @classmethod
     def compute_partial_or_full(
