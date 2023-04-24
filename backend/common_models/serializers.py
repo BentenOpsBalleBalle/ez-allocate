@@ -203,8 +203,10 @@ class CommitLTPSerializer(AllotmentSerializer):
                 )
 
         # first teacher given Lecture should be given T, P hours too, if they exist
-        if allotted_lecture_hours != 0 and (
-            Allotment.objects.filter(subject=subject).count() == 0
+        if (
+            (settings.CUSTOM_SETTINGS["DISABLE__FIRST_LECTURER_CHECK"] is False) and
+            allotted_lecture_hours != 0 and
+            (Allotment.objects.filter(subject=subject).count() == 0)
         ):
             for key in keys[1:]:  # over tutorial and practical hours
                 allotted_key = "allotted" + key
