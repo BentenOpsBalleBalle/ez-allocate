@@ -7,7 +7,7 @@ from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
-from .models import Allotment, Choices, Subject, Teacher
+from .models import Allotment, CeleryFileResults, Choices, Subject, Teacher
 
 # TODO: add unit tests to make sure all properties are returned in the response
 
@@ -272,3 +272,10 @@ class CommitLTPSerializer(AllotmentSerializer):
                 "Allotment for subject: \"%s\" & teacher: \"%s\"", len(instance_list),
                 self.validated_data["subject"], self.validated_data["teacher"]
             )
+
+
+class CeleryFileResultsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CeleryFileResults
+        exclude = ("file", )

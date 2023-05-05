@@ -1,7 +1,7 @@
 from typing import Union
 
 from common_models import serializers
-from common_models.models import Allotment, Choices, Subject, Teacher
+from common_models.models import (Allotment, CeleryFileResults, Choices, Subject, Teacher)
 from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -323,3 +323,8 @@ class SearchViewSet(viewsets.ViewSet):
         )[:10]
         serializer = serializers.TeacherSerializer(sorted_by_remaining, many=True)
         return Response(serializer.data)
+
+
+class FileResultsViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = CeleryFileResults.objects.all()
+    serializer_class = serializers.CeleryFileResultsSerializer
