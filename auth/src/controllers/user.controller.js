@@ -43,7 +43,11 @@ async function signUpUser(req, res) {
 
         res.status(201).send({ message: "User created successfully" });
     } catch (err) {
-        res.status(500).send({ message: "Internal Server Error" });
+        if (err?.name == "ValidationError") {
+            res.status(400).send(err);
+        } else {
+            res.status(500).send({ message: "Internal Server Error" });
+        }
     }
 }
 
