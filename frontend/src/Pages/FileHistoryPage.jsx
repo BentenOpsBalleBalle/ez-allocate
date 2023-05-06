@@ -45,7 +45,10 @@ const handleExport = async (exportFor, setNewExportType) => {
                     service: "allocate",
                 });
                 setNewExportType("success");
-                downloadFile(resp.data, "subject_allottments.csv");
+                downloadFile(
+                    resp.data,
+                    `${exportFor.toLowerCase()}_allottments.csv`
+                );
             }
         }, 3000);
     } catch (err) {
@@ -68,7 +71,10 @@ const FileHistoryPage = () => {
                     type={newExportType}
                     scale={1 / 2}
                     font="12px"
-                    onClick={() => handleExport(perspective, setNewExportType)}
+                    onClick={() => {
+                        handleExport(perspective, setNewExportType);
+                        setNewExportType("secondary");
+                    }}
                 >
                     <div>Create {perspective} Export</div>
                     <HiDocumentDownload />
