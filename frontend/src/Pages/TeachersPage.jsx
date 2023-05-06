@@ -8,6 +8,7 @@ import { Drawer } from "@geist-ui/core";
 import { FiSearch } from "react-icons/fi";
 import { CustomSearch } from "../components/common/CustomSearch";
 import { TeacherCard } from "../components/Teacher Components/TeacherCard";
+import BreadCrumbComp from "../components/common/BreadCrumbComp";
 
 function TeachersPage() {
     const [page, setPage] = useState(1);
@@ -28,6 +29,7 @@ function TeachersPage() {
 
     return (
         <div>
+            <BreadCrumbComp />
             <div className="title text-[35px] ml-[30px] mr-[15px] font-bold flex justify-between items-center">
                 <div className="flex items-center gap-x-2">
                     T E A C H E R S

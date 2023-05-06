@@ -8,7 +8,7 @@ import { FiSearch } from "react-icons/fi";
 import SubjectCard from "../components/Subject Components/SubjectCard";
 import { CustomSearch } from "../components/common/CustomSearch";
 import { useNavigate } from "react-router-dom";
-import ExportComp from "../components/ExportComp";
+import BreadCrumbComp from "../components/common/BreadCrumbComp";
 
 function SubjectsPage() {
     const navigate = useNavigate();
@@ -88,11 +88,12 @@ function SubjectsPage() {
         );
     };
     return (
-        <div className="w-screen h-screen pt-2  overflow-x-hidden">
+        <div className="w-screen h-screen  overflow-x-hidden">
+            <BreadCrumbComp />
             <div className="flex flex-col lg:flex-row  gap-y-4 justify-between px-8 items-center">
                 <div className="flex flex-col  md:flex-row gap-y-2.5 gap-x-[100px] items-center ">
                     <div className="title font-bold truncate relative flex items-center gap-x-4">
-                        <div className=" text-[40px]">S U B J E C T S</div>
+                        <div className=" text-[35px]">S U B J E C T S</div>
 
                         <div className="">
                             <FetchingIndicator />
@@ -111,9 +112,6 @@ function SubjectsPage() {
                             <div className="w-5 h-5 bg-yellow-400 rounded-sm" />
                             <div>PARTIAL</div>
                         </div>
-                    </div>
-                    <div>
-                        <ExportComp />
                     </div>
                 </div>
 
@@ -144,16 +142,16 @@ function SubjectsPage() {
                     >
                         <FiSearch />
                     </span>
-                    <div
+                    {/* <div
                         onClick={() => navigate("/teachers")}
                         className="border border-blue-300 bg-blue-700 text-white font-mono text-xl font-bold rounded-lg px-3 py-1 cursor-pointer"
                     >
                         Teachers
-                    </div>
+                    </div> */}
                 </div>
             </div>
 
-            <div className="flex justify-center mt-6 gap-x-8">
+            <div className="flex justify-center mt-5 gap-x-8">
                 <Popover
                     content={() =>
                         CheckBoxContent(
@@ -188,7 +186,7 @@ function SubjectsPage() {
             ) : (
                 <>
                     {subjectsQuery.isLoading ? null : (
-                        <div className="flex mt-6 flex-wrap gap-8  justify-center">
+                        <div className="flex mt-5 flex-wrap gap-8  justify-center">
                             {subjectsQuery.data.data.results.map((subject) => (
                                 <SubjectCard
                                     key={subject.id}
