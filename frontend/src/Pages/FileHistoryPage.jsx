@@ -192,7 +192,7 @@ const FileTable = ({ tableDataFor }) => {
         });
 
     return (
-        <div className="mx-auto w-[60%]">
+        <div className="mx-auto md:w-[60%]">
             <Table data={dataSource}>
                 <Table.Column prop="filename" label="File Name" />
                 <Table.Column prop="created_at" label="Date" />
