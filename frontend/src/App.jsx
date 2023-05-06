@@ -5,6 +5,7 @@ import TeachersPage from "./Pages/TeachersPage";
 import Teacher from "./components/Teacher";
 import NotFoundError from "./Pages/NotFoundError";
 import { Routes, Route } from "react-router-dom";
+import FileHistoryPage from "./Pages/FileHistoryPage";
 const App = () => {
     return (
         <div>
@@ -15,6 +16,7 @@ const App = () => {
                 <Route path="/teachers" element={<TeachersPage />} />
                 <Route path="/teachers/:id" element={<Teacher />} />
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/files" element={<FileHistoryPage />} />
                 <Route path="/*" element={<NotFoundError />} />
             </Routes>
         </div>
