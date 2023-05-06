@@ -22,10 +22,14 @@ async function signInUser(req, res) {
     }
 
     const secret = process.env.PRIVATE_KEY;
-    const token = JWT.sign({ name: userExists.name, programme: userExists.programme }, secret, {
-        expiresIn: "1h",
-        algorithm: "RS256",
-    });
+    const token = JWT.sign(
+        { name: userExists.name, programme: userExists.programme, email: userExists.email },
+        secret,
+        {
+            expiresIn: "1h",
+            algorithm: "RS256",
+        }
+    );
     res.status(200).json({ token });
 }
 
