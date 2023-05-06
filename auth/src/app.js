@@ -51,7 +51,7 @@ function verify(req, res, next) {
     }
     JWT.verify(token, process.env.PUBLIC_KEY, { algorithms: ["RS256"] }, (err, decoded) => {
         if (err) {
-            return res.status(500).send({ auth: false, message: "Failed to authenticate token." });
+            return res.status(401).send({ auth: false, message: "Failed to authenticate token." });
         }
         console.log(decoded);
         next();
