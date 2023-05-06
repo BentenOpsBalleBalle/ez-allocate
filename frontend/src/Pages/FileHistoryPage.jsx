@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { request } from "../helpers/Client";
-import { Tabs, Table, Button } from "@geist-ui/core";
+import { Tabs, Table, Button, Spinner } from "@geist-ui/core";
 import { FaBook } from "react-icons/fa";
 import { BsFilePersonFill } from "react-icons/bs";
 import { HiDocumentDownload } from "react-icons/hi";
@@ -16,7 +16,8 @@ const downloadFile = (data, filename) => {
     link.remove();
 };
 
-const handleExport = async (exportFor, setNewExportType) => {
+const handleExport = async ({ exportFor, setNewExportType, setExporting }) => {
+    setExporting(true);
     try {
         const response = await request.send({
             url: `api/tasks/export${
@@ -44,7 +45,9 @@ const handleExport = async (exportFor, setNewExportType) => {
                     method: "GET",
                     service: "allocate",
                 });
+                setExporting(false);
                 setNewExportType("success");
+
                 downloadFile(
                     resp.data,
                     `${exportFor.toLowerCase()}_allottments.csv`
@@ -53,6 +56,7 @@ const handleExport = async (exportFor, setNewExportType) => {
         }, 3000);
     } catch (err) {
         console.log(err);
+        setExporting(false);
         setNewExportType("error");
     }
 };
@@ -60,6 +64,7 @@ const handleExport = async (exportFor, setNewExportType) => {
 const FileHistoryPage = () => {
     const [perspective, setPerspective] = useState("Subject");
     const [newExportType, setNewExportType] = useState("secondary");
+    const [exporting, setExporting] = useState(false);
     return (
         <div className="pt-4">
             <div className="flex justify-around items-center">
@@ -72,12 +77,22 @@ const FileHistoryPage = () => {
                     scale={1 / 2}
                     font="12px"
                     onClick={() => {
-                        handleExport(perspective, setNewExportType);
+                        handleExport({
+                            exportFor: perspective,
+                            setNewExportType: setNewExportType,
+                            setExporting: setExporting,
+                        });
                         setNewExportType("secondary");
                     }}
                 >
-                    <div>Create {perspective} Export</div>
-                    <HiDocumentDownload />
+                    <div className="flex gap-x-2 items-center">
+                        <div>Create {perspective} Export</div>
+                        {exporting ? (
+                            <Spinner style={{ width: "15px" }} />
+                        ) : (
+                            <HiDocumentDownload />
+                        )}
+                    </div>
                 </Button>
             </div>
             <Tabs
@@ -133,8 +148,10 @@ const FileTable = ({ tableDataFor }) => {
 
     const renderAction = (taskId, rowData, index) => {
         const [btnType, setBtnType] = useState("secondary");
+        const [exporting, setExporting] = useState(false);
         // console.log(rowData);
         const downloadHandler = async () => {
+            setExporting(true);
             try {
                 const res = await request.send({
                     url: `api/tasks/export${
@@ -148,11 +165,13 @@ const FileTable = ({ tableDataFor }) => {
                 if (res.status === 200) {
                     downloadFile(res.data, rowData.filename);
                     setBtnType("success");
+                    setExporting(false);
                 } else {
                     throw new Error("File not available");
                 }
             } catch (e) {
                 console.log(e);
+                setExporting(false);
                 setBtnType("error");
             }
         };
@@ -164,7 +183,11 @@ const FileTable = ({ tableDataFor }) => {
                 font="12px"
                 onClick={downloadHandler}
             >
-                <HiDocumentDownload />
+                {exporting ? (
+                    <Spinner style={{ width: "15px" }} />
+                ) : (
+                    <HiDocumentDownload />
+                )}
             </Button>
         );
     };
