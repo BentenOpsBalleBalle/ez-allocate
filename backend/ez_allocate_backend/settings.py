@@ -82,12 +82,15 @@ LOGGING = {
     'loggers': {
         'common_models': {
             'handlers': ['console'],
+        },
+        'api': {
+            'handlers': ['console'],
         }
     },
     'formatters': {
         'verbose': {
             'format': '{levelname} - [{asctime}]:[{name}] {message}',
-            'datefmt': '%d/%M/%Y %H:%M:%S',
+            'datefmt': '%d/%b/%Y %H:%M:%S',
             'style': '{',
         }
     },
