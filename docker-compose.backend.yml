@@ -22,6 +22,7 @@ services:
         target: /.secrets/public.pem
 
   auth:
+    image: ghcr.io/bentenopsballeballe/ez-allocate-auth:latest
     build:
       context: ./auth
       dockerfile: Dockerfile.dev
