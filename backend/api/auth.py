@@ -32,7 +32,7 @@ class JWTAuth(authentication.BaseAuthentication):
                 key=self.public_key,
                 algorithms=['RS256'],
             )
-        except jwt.exceptions.InvalidSignatureError as e:
+        except (jwt.exceptions.InvalidSignatureError, jwt.exceptions.DecodeError) as e:
             logger.error(e)
             raise exceptions.AuthenticationFailed(e)
 
