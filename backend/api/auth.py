@@ -15,6 +15,9 @@ class JWTAuth(authentication.BaseAuthentication):
     def authenticate(self, request):
         if settings.CUSTOM_SETTINGS["DISABLE_AUTH"]:
             return None
+        if "HTTP_AUTHORIZATION" not in request.META:
+            raise exceptions.NotAuthenticated()
+
         token = request.META.get('HTTP_AUTHORIZATION', "")
 
         if len(token.split()) != 2:

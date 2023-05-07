@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Union
 
 import tasks.tasks as celery_tasks
+from api.auth import JWTAuth
 from celery import Task
 from celery.local import PromiseProxy
 from celery.result import AsyncResult
@@ -38,6 +39,7 @@ class AbstractCeleryTaskViewSet(viewsets.GenericViewSet, ABC):
     fetch it's results
     """
     # TODO: store the Asyncresult in a property
+    authentication_classes = [JWTAuth]
 
     @property
     @abstractmethod
