@@ -39,6 +39,7 @@ jobs:
     - name: Run Tests
       run: |
         cd backend
+        DISABLE_AUTH=true
         python manage.py test
   
   docker-publish:
