@@ -10,12 +10,13 @@ const App = () => {
     return (
         <div>
             <Routes>
+                <Route path="/" element={<LoginPage />} />
                 <Route path="/subjects" element={<SubjectsPage />} />
                 <Route path="/subjects/:id" element={<Subject />} />
 
                 <Route path="/teachers" element={<TeachersPage />} />
                 <Route path="/teachers/:id" element={<Teacher />} />
-                <Route path="/login" element={<LoginPage />} />
+
                 <Route path="/files" element={<FileHistoryPage />} />
                 <Route path="/*" element={<NotFoundError />} />
             </Routes>

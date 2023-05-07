@@ -1,7 +1,8 @@
 import { useForm } from "react-hook-form";
 import { request } from "../helpers/Client";
-
+import { useNavigate } from "react-router-dom";
 function LoginForm() {
+    const navigate = useNavigate();
     const {
         register,
         handleSubmit,
@@ -10,14 +11,16 @@ function LoginForm() {
     } = useForm();
     const onSubmit = async (data) => {
         const res = await request.send({
-            url: "http://localhost:3000/auth/signin",
+            url: "auth/signin",
             method: "POST",
             body: {
                 email: data.email,
                 password: data.password,
             },
+            service: "auth",
         });
         request.setToken(res.data.token);
+        navigate("/subjects");
     };
 
     return (
@@ -38,9 +41,12 @@ function LoginForm() {
 
             <input
                 placeholder="Enter Password"
-                {...register("password", {
-                    pattern: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/,
-                })}
+                {...register(
+                    "password"
+                    //  {
+                    //     pattern: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/,
+                    // }
+                )}
                 className="border border-gray-400 rounded-full w-80 py-3 px-3"
             />
             {errors.password && (
