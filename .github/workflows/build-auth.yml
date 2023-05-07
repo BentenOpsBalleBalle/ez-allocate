@@ -1,0 +1,48 @@
+name: build and publish auth service
+
+on:
+  push:
+    paths:
+      - "auth/**"
+      - ".github/workflows/build-auth.yml"
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - "auth/**"
+  
+  # publish on releases, e.g. v2.1.13 (image tagged as "2.1.13" - "v" prefix is removed)
+  release:
+    types: [published]
+  
+  workflow_dispatch:
+
+jobs:
+  docker-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # https://github.community/t/github-actions-repository-name-must-be-lowercase/184924
+      - name: downcase REPO & get tag name
+        run: |
+          echo "REPO_LC=${GITHUB_REPOSITORY,,}-backend" >>${GITHUB_ENV}
+          
+          BRANCH_TAG=$(git rev-parse --abbrev-ref HEAD | sed 's/[^a-zA-Z0-9]/-/g')
+          
+          if [ $BRANCH_TAG = 'main' ]; then
+              BRANCH_TAG='latest'
+          fi
+          
+          echo "BRANCH_TAG=$BRANCH_TAG" >> ${GITHUB_ENV}
+          
+      
+      # https://github.com/marketplace/actions/push-to-ghcr
+      - name: Build and publish a Docker image for ${{ github.repository }}
+        uses: macbre/push-to-ghcr@master
+        with:
+          image_name: ${{ env.REPO_LC }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          context: auth
+          dockerfile: "auth/Dockerfile.dev"
+          image_tag: ${{ env.BRANCH_TAG }}
