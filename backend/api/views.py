@@ -6,6 +6,7 @@ from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django_filters import rest_framework as filters
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (OpenApiParameter, extend_schema, inline_serializer)
 from rest_framework import status, viewsets
 from rest_framework.decorators import action, api_view, authentication_classes
@@ -333,3 +334,28 @@ class FileResultsViewSet(viewsets.ReadOnlyModelViewSet):
     authentication_classes = [JWTAuth]
     queryset = CeleryFileResults.objects.all()
     serializer_class = serializers.CeleryFileResultsSerializer
+
+    @extend_schema(
+        responses={
+            (200, 'text/csv'): OpenApiTypes.BINARY,
+        },
+    )
+    @action(detail=True)
+    def download(self, request, pk=None):
+        """
+        returns the binary content of the file (assuming default of csv)
+        """
+        file: CeleryFileResults = self.get_object()
+
+        file.has_been_downloaded_yet = True
+        file.save()
+
+        response = Response(
+            headers={
+                "Content-Disposition": f"attachment; filename={file.filename}",
+                "Content-Type": "text/csv; charset=utf-8"
+            }
+        )
+        response.content = file.file
+
+        return response
