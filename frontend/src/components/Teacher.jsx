@@ -18,7 +18,6 @@ const Teacher = () => {
         ["teachers", +id, "allotments"],
         () =>
             request.send({
-            request.send({
                 url: `api/teachers/${id}/allotments`,
                 method: "GET",
                 service: "allocate",
