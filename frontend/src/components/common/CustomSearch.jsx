@@ -14,26 +14,24 @@ export const CustomSearch = ({ searchFor, onSelect, width }) => {
                 <Text b my="5px">
                     {courseCode} - {courseName}
                 </Text>
-                {/* <Button
-                    auto
-                    type="success-light"
-                    onClick={() => customOnSelect(id)}
-                    height="20px"
-                >
-                    Go
-                </Button> */}
             </div>
         </AutoComplete.Option>
     );
 
-    const teacherOption = (name, email, status, id) => (
+    const teacherOption = (name, email, status, id, current_load) => (
         <AutoComplete.Option value={id}>
             <div
                 style={{ backgroundColor: `#${setColor(status)}` }}
                 className="w-full p-1.5 my-1 rounded-md "
             >
                 <div className="flex flex-col">
-                    <div className="text-[14px] font-medium">{name}</div>
+                    <div className="flex justify-between ">
+                        <div className="text-[14px] font-medium">{name}</div>
+                        <div className="bg-black text-white font-semibold py-0.5 px-1">
+                            {current_load}
+                        </div>
+                    </div>
+
                     <div className="text-[10px]">{email}</div>
                 </div>
                 {/* <Button type="success-light" onClick={() => customOnSelect(id)}>
@@ -45,48 +43,48 @@ export const CustomSearch = ({ searchFor, onSelect, width }) => {
     const [options, setOptions] = useState();
     const [searching, setSearching] = useState(false);
     const [searchValue, setSearchValue] = useState("");
-    const searchQuery = useQuery(
-        ["search", searchFor, searchValue],
-        () =>
-            request.send({
-                url: `api/search/${searchFor}/?q=${searchValue}`,
-                method: "GET",
-                service: "allocate",
-            }),
-        {
-            enabled: searchValue.length >= 2,
-        }
+    const searchQuery = useQuery(["search", searchFor, searchValue], () =>
+        request.send({
+            url: `api/search/${searchFor}/?q=${searchValue}`,
+            method: "GET",
+            service: "allocate",
+        })
     );
 
     const searchHandler = (currentValue) => {
-        if (!currentValue) return setOptions([]);
+        // if (!currentValue) return setOptions([]);
+        console.log(currentValue);
         setSearchValue(currentValue);
-        if (searchQuery.isLoading) {
+        if (searchQuery.isFetching) {
             setSearching(true);
-        } else {
+        }
+
+        if (searchQuery.data.data) {
             setSearching(false);
-            console.log(searchQuery.data);
-            if (searchFor === "subjects") {
-                const customOptions = searchQuery.data.data.map((query) =>
-                    subjectOption(
-                        query.name,
-                        query.course_code,
-                        query.allotment_status,
-                        query.id
-                    )
-                );
-                setOptions(customOptions);
-            } else if (searchFor === "teachers") {
-                const customOptions = searchQuery.data.data.map((query) =>
-                    teacherOption(
-                        query.name,
-                        query.email,
-                        query.assigned_status,
-                        query.id
-                    )
-                );
-                setOptions(customOptions);
-            }
+        }
+
+        // console.log(searchQuery.data.data);
+        if (searchFor === "subjects") {
+            const customOptions = searchQuery.data?.data?.map((query) =>
+                subjectOption(
+                    query.name,
+                    query.course_code,
+                    query.allotment_status,
+                    query.id
+                )
+            );
+            setOptions(customOptions);
+        } else if (searchFor === "teachers") {
+            const customOptions = searchQuery.data?.data?.map((query) =>
+                teacherOption(
+                    query.name,
+                    query.email,
+                    query.assigned_status,
+                    query.id,
+                    query.current_load
+                )
+            );
+            setOptions(customOptions);
         }
 
         // setOptions(relatedOptions);

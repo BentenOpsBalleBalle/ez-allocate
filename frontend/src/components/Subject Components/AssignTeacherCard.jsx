@@ -141,8 +141,10 @@ const AssignTeacherCard = ({ choice_number, teacher, subjectData }) => {
             <Badge scale={0.6}>{choice_number}</Badge>
             <Card
                 width="250px"
+                className={`${
+                    teacher.assigned_status === "OVER" ? "animate-wiggle" : ""
+                }`}
                 style={{
-                    // backgroundColor: getChoiceColor(choice_number),
                     backgroundColor: "#5fdadc",
                     position: "relative",
                 }}
@@ -151,7 +153,7 @@ const AssignTeacherCard = ({ choice_number, teacher, subjectData }) => {
                 <div className="absolute top-0 right-0 flex items-start">
                     <div className="mt-[4px] mr-1">
                         {teacherAllotmentsQuery.isLoading ||
-                        teacherAllotmentsQuery.data?.data.length < 2 ? null : (
+                        teacherAllotmentsQuery.data?.data.length < 3 ? null : (
                             <div>
                                 <Tooltip
                                     type="warning"
@@ -166,7 +168,20 @@ const AssignTeacherCard = ({ choice_number, teacher, subjectData }) => {
                     <div className="mt-[1px]">
                         {choice_number === 0 && (
                             <TiDelete
-                                onClick={() => removeTeacherMutation.mutate()}
+                                onClick={() => {
+                                    if (
+                                        lecture === 0 &&
+                                        tutorial === 0 &&
+                                        practical === 0
+                                    ) {
+                                        removeTeacherMutation.mutate();
+                                    } else {
+                                        setToast({
+                                            text: "Please remove currently assigned hours from this teacher",
+                                            type: "error",
+                                        });
+                                    }
+                                }}
                                 className=" text-red-600  text-2xl cursor-pointer"
                             />
                         )}
