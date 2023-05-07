@@ -70,3 +70,28 @@ class CSVFormat_v1(AbstractFileFormat):
             "P": allotment.allotted_practical_hours,
             "Total": allotment.get_allotment_total_hours()
         }
+
+
+class CSVFormatTeacher_v1(AbstractFileFormat):
+    """
+    This v1 format will be used to export the allotments in the following format:
+        - Faculty
+        - Subject
+        - L
+        - T
+        - P
+        - Total
+    """
+
+    def _set_field_format(self) -> List[str]:
+        return ["Faculty", "Subject", "L", "T", "P", "Total"]
+
+    def _make_dict_row(self, allotment: Allotment):
+        return {
+            "Faculty": str(allotment.teacher),
+            "Subject": allotment.subject.repr_csv(),
+            "L": allotment.allotted_lecture_hours,
+            "T": allotment.allotted_tutorial_hours,
+            "P": allotment.allotted_practical_hours,
+            "Total": allotment.get_allotment_total_hours()
+        }

@@ -2,15 +2,18 @@ from abc import ABC, abstractmethod
 from typing import Union
 
 import tasks.tasks as celery_tasks
+from api.auth import JWTAuth
 from celery import Task
 from celery.local import PromiseProxy
 from celery.result import AsyncResult
 from common_models.models import CeleryFileResults
+from django.http import HttpResponseRedirect
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.reverse import reverse
 
 task_status_serializer = inline_serializer(
     name="CeleryTaskStatusResponse",
@@ -38,6 +41,7 @@ class AbstractCeleryTaskViewSet(viewsets.GenericViewSet, ABC):
     fetch it's results
     """
     # TODO: store the Asyncresult in a property
+    authentication_classes = [JWTAuth]
 
     @property
     @abstractmethod
@@ -158,11 +162,13 @@ class ExportAllotmentsToCSVViewSet(AbstractCeleryTaskViewSet):
     @extend_schema(
         description="this endpoint fetches the result for the task"
         " and returns it. If the task is in progress, returns its status"
+        ". Aliases to the `/api/files/download` api call"
     )
     @extend_schema(
         responses={
             (200, 'text/csv'): OpenApiTypes.BINARY,
-            202: task_status_serializer
+            202: task_status_serializer,
+            302: None
         },
     )
     @action(detail=False, url_path=f"results/({TASK_ID_PARAM})")
@@ -172,15 +178,15 @@ class ExportAllotmentsToCSVViewSet(AbstractCeleryTaskViewSet):
     def get_result(self, task_id: str) -> Response:
         result = AsyncResult(task_id)
         file_id = result.result
-        file = CeleryFileResults.objects.get(id=file_id)
-        file.has_been_downloaded_yet = True
-        file.save()
-
-        response = Response(
-            headers={
-                "Content-Disposition": f"attachment; filename={file.filename}",
-                "Content-Type": "text/csv; charset=utf-8"
-            }
+        response = HttpResponseRedirect(
+            reverse("files-download", args=[file_id or task_id])
         )
-        response.content = file.file
         return response
+
+
+class ExportAllotmentsTeacherSideToCSVViewSet(ExportAllotmentsToCSVViewSet):
+    # OOP magik :)
+    # i love OOP, when it works the intended way :)))))
+    @property
+    def task(self) -> Union[PromiseProxy, Task]:
+        return celery_tasks.export_teacher_allotments_csv

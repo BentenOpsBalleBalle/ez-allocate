@@ -10,7 +10,8 @@ router = DefaultRouter()
 # Celery tasks registration
 # to add more tasks, just add their viewsets in this list
 enabled_viewsets: List[AbstractCeleryTaskViewSet] = [
-    celery_task_views.ExportAllotmentsToCSVViewSet
+    celery_task_views.ExportAllotmentsToCSVViewSet,
+    celery_task_views.ExportAllotmentsTeacherSideToCSVViewSet,
 ]
 for task_viewset in enabled_viewsets:
     task_name = task_viewset().task_name

@@ -1,3 +1,5 @@
+from unittest import skipIf
+
 from common_models.models import Allotment, Choices, Subject, Teacher
 from django.conf import settings
 from django.urls import reverse
@@ -180,6 +182,10 @@ class CommitLTPValidatorTest(APITestCase):
         response = self.call_api(allotted_practical=13)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    @skipIf(
+        settings.CUSTOM_SETTINGS["DISABLE__TEACHER_WORKLOAD_CHECK"] is True,
+        "teacher workload check is disabled"
+    )
     def test_ltp_hours_feasible_by_teacher(self):
         subject1 = Subject(
             name="subject1",
@@ -214,6 +220,10 @@ class CommitLTPValidatorTest(APITestCase):
         response = self.call_api(allotted_lecture=2, allotted_tutorial=1)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    @skipIf(
+        settings.CUSTOM_SETTINGS["DISABLE__FIRST_LECTURER_CHECK"] is True,
+        "first lecturer feature flag is disabled"
+    )
     def test_first_lecture_teacher_should_be_given_tut_and_prac(self):
         subject1 = Subject(
             name="subject1",

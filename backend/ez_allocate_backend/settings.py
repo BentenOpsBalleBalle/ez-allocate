@@ -33,7 +33,10 @@ ALLOWED_HOSTS.extend(
 # CUSTOM SETTINGS
 CUSTOM_SETTINGS = {
     "MANUAL_CHOICE_NUMBER": 0,
-    "MAX_TEACHER_WORKLOAD_HOURS": 14
+    "MAX_TEACHER_WORKLOAD_HOURS": 14,
+    "DISABLE__TEACHER_WORKLOAD_CHECK": True,
+    "DISABLE__FIRST_LECTURER_CHECK": True,
+    "DISABLE_AUTH": getenv("DISABLE_AUTH", "false").lower() == "true",
 }
 
 # CORS SETTINGS
@@ -45,6 +48,10 @@ CORS_ALLOWED_ORIGINS = [
 ]
 # yapf: enable
 CORS_ALLOWED_ORIGINS.extend(
+    i for i in getenv("CORS_ALLOWED_ORIGINS", "").split(",") if i != ""
+)
+CSRF_TRUSTED_ORIGINS = []
+CSRF_TRUSTED_ORIGINS.extend(
     i for i in getenv("CORS_ALLOWED_ORIGINS", "").split(",") if i != ""
 )
 # yapf: disable
@@ -76,12 +83,15 @@ LOGGING = {
     'loggers': {
         'common_models': {
             'handlers': ['console'],
+        },
+        'api': {
+            'handlers': ['console'],
         }
     },
     'formatters': {
         'verbose': {
             'format': '{levelname} - [{asctime}]:[{name}] {message}',
-            'datefmt': '%d/%M/%Y %H:%M:%S',
+            'datefmt': '%d/%b/%Y %H:%M:%S',
             'style': '{',
         }
     },

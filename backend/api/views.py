@@ -1,18 +1,20 @@
 from typing import Union
 
 from common_models import serializers
-from common_models.models import Allotment, Choices, Subject, Teacher
+from common_models.models import (Allotment, CeleryFileResults, Choices, Subject, Teacher)
 from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django_filters import rest_framework as filters
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (OpenApiParameter, extend_schema, inline_serializer)
 from rest_framework import status, viewsets
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, authentication_classes
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from .auth import JWTAuth
 from .filters import SubjectFilter
 
 # Create your views here.
@@ -23,6 +25,7 @@ class CustomPagination(PageNumberPagination):
 
 
 class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = [JWTAuth]
     queryset = Subject.objects.all()
     serializer_class = serializers.SubjectSerializer
     pagination_class = CustomPagination
@@ -70,7 +73,7 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
         Returns all the available `programme` choices based on database entries
         """
         return Response(
-            [dict(zip(('param_value', 'name'), i)) for i in SubjectFilter._choices]
+            [dict(zip(('param_value', 'name'), (i, i))) for i in SubjectFilter._choices]
         )
 
     @extend_schema(responses={200: serializers.SubjectChoicesSetSerializer(many=True)})
@@ -220,6 +223,7 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class TeacherViewSet(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = [JWTAuth]
     queryset = Teacher.objects.all()
     serializer_class = serializers.TeacherSerializer
     pagination_class = CustomPagination
@@ -253,6 +257,7 @@ class SearchViewSet(viewsets.ViewSet):
     """
     This viewset provides a search API for teachers and subjects models
     """
+    authentication_classes = [JWTAuth]
 
     def __search(self, model: Union[Teacher, Subject], query="", fields=[], limit=10):
         """
@@ -315,7 +320,42 @@ class SearchViewSet(viewsets.ViewSet):
         Searches over the fields: `name`, `email`
         """
         query = request.query_params.get("q", "")
-        data = self.__search(Teacher, query, ["name", "email"])
-        sorted_by_remaining = sorted(data, key=lambda teach: teach.current_load)
+        data = self.__search(Teacher, query, ["name", "email"], limit=None)
+        sorted_by_remaining = data.prefetch_related('allotment_set').order_by(
+            'allotment__allotted_lecture_hours',
+            'allotment__allotted_tutorial_hours',
+            'allotment__allotted_practical_hours',
+        )[:10]
         serializer = serializers.TeacherSerializer(sorted_by_remaining, many=True)
         return Response(serializer.data)
+
+
+class FileResultsViewSet(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = [JWTAuth]
+    queryset = CeleryFileResults.objects.all()
+    serializer_class = serializers.CeleryFileResultsSerializer
+
+    @extend_schema(
+        responses={
+            (200, 'text/csv'): OpenApiTypes.BINARY,
+        },
+    )
+    @action(detail=True)
+    def download(self, request, pk=None):
+        """
+        returns the binary content of the file (assuming default of csv)
+        """
+        file: CeleryFileResults = self.get_object()
+
+        file.has_been_downloaded_yet = True
+        file.save()
+
+        response = Response(
+            headers={
+                "Content-Disposition": f"attachment; filename={file.filename}",
+                "Content-Type": "text/csv; charset=utf-8"
+            }
+        )
+        response.content = file.file
+
+        return response
