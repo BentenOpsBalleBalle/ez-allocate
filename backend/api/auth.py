@@ -1,4 +1,5 @@
 import logging
+from os import environ
 
 import jwt
 from cryptography.hazmat.primitives import serialization
@@ -40,6 +41,10 @@ class JWTAuth(authentication.BaseAuthentication):
 
     @property
     def public_key(self):
-        with open("../.secrets/public.pem") as f:
-            key = f.read()
+        key = environ.get("_PUBLIC_KEY", None)
+        if key is None:
+            with open("../.secrets/public.pem") as f:
+                key = f.read()
+                environ["_PUBLIC_KEY"] = key
+
         return serialization.load_pem_public_key(key.encode())
