@@ -41,12 +41,9 @@ function LoginForm() {
 
             <input
                 placeholder="Enter Password"
-                {...register(
-                    "password"
-                    //  {
-                    //     pattern: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/,
-                    // }
-                )}
+                {...register("password", {
+                    pattern: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/,
+                })}
                 className="border border-gray-400 rounded-full w-80 py-3 px-3"
             />
             {errors.password && (
