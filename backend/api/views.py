@@ -8,11 +8,12 @@ from django.shortcuts import get_object_or_404
 from django_filters import rest_framework as filters
 from drf_spectacular.utils import (OpenApiParameter, extend_schema, inline_serializer)
 from rest_framework import status, viewsets
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, authentication_classes
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from .auth import JWTAuth
 from .filters import SubjectFilter
 
 # Create your views here.
@@ -23,6 +24,7 @@ class CustomPagination(PageNumberPagination):
 
 
 class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = [JWTAuth]
     queryset = Subject.objects.all()
     serializer_class = serializers.SubjectSerializer
     pagination_class = CustomPagination
@@ -220,6 +222,7 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class TeacherViewSet(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = [JWTAuth]
     queryset = Teacher.objects.all()
     serializer_class = serializers.TeacherSerializer
     pagination_class = CustomPagination
@@ -253,6 +256,7 @@ class SearchViewSet(viewsets.ViewSet):
     """
     This viewset provides a search API for teachers and subjects models
     """
+    authentication_classes = [JWTAuth]
 
     def __search(self, model: Union[Teacher, Subject], query="", fields=[], limit=10):
         """
@@ -326,5 +330,6 @@ class SearchViewSet(viewsets.ViewSet):
 
 
 class FileResultsViewSet(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = [JWTAuth]
     queryset = CeleryFileResults.objects.all()
     serializer_class = serializers.CeleryFileResultsSerializer
