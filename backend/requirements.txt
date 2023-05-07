@@ -1,7 +1,11 @@
+celery
+celery[redis]
 Django
 django-cors-headers
+django-filter
 djangorestframework
 drf-spectacular
 parametrize
+pyjwt[crypto]
 pyyaml
 uritemplate

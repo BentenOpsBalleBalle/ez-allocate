@@ -1,15 +1,21 @@
 from typing import Union
 
 from common_models import serializers
-from common_models.models import Allotment, Choices, Subject, Teacher
+from common_models.models import (Allotment, CeleryFileResults, Choices, Subject, Teacher)
 from django.db.models import Q
+from django.http import Http404
 from django.shortcuts import get_object_or_404
-from drf_spectacular.utils import OpenApiParameter, extend_schema
+from django_filters import rest_framework as filters
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import (OpenApiParameter, extend_schema, inline_serializer)
 from rest_framework import status, viewsets
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, authentication_classes
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.request import Request
 from rest_framework.response import Response
+
+from .auth import JWTAuth
+from .filters import SubjectFilter
 
 # Create your views here.
 
@@ -19,9 +25,12 @@ class CustomPagination(PageNumberPagination):
 
 
 class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = [JWTAuth]
     queryset = Subject.objects.all()
     serializer_class = serializers.SubjectSerializer
     pagination_class = CustomPagination
+    filter_backends = (filters.DjangoFilterBackend, )
+    filterset_class = SubjectFilter
 
     @extend_schema(responses={200: serializers.SubjectListSerializer})
     def list(self, request, *args, **kwargs):
@@ -34,8 +43,41 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
         self.serializer_class = old
         return response
 
+    @extend_schema(
+        responses={
+            200: (
+                filter_choices_serializer := inline_serializer(
+                    name="CourseTypeOptions",
+                    fields={
+                        "name": serializers.serializers.CharField(),
+                        "param_value": serializers.serializers.CharField(max_length=4)
+                    },
+                    many=True
+                )
+            )
+        }
+    )
+    @action(detail=False, pagination_class=None, filterset_class=None)
+    def get_course_type_choices(self, request):
+        """
+        Returns the available `course_type` choices
+        """
+        return Response(
+            [dict(zip(('param_value', 'name'), i)) for i in Subject.CourseType.choices]
+        )
+
+    @extend_schema(responses={200: filter_choices_serializer})
+    @action(detail=False, pagination_class=None, filterset_class=None)
+    def get_programme_choices(self, request):
+        """
+        Returns all the available `programme` choices based on database entries
+        """
+        return Response(
+            [dict(zip(('param_value', 'name'), (i, i))) for i in SubjectFilter._choices]
+        )
+
     @extend_schema(responses={200: serializers.SubjectChoicesSetSerializer(many=True)})
-    @action(detail=True, pagination_class=None)
+    @action(detail=True, pagination_class=None, filterset_class=None)
     def choices(self, request, pk=None):
         """
         Returns the list of teachers that have selected the current subject
@@ -73,7 +115,8 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
         detail=True,
         methods=["POST", "DELETE"],
         url_path=r'choices/modify/(?P<teacher>\w+)',
-        pagination_class=None
+        pagination_class=None,
+        filterset_class=None
     )
     def choices_modify(self, request: Request, pk=None, teacher=None):
         subject = self.get_object()
@@ -101,11 +144,16 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
                     status=status.HTTP_403_FORBIDDEN
                 )
             instance.delete()
+            # also delete allotment if it exists
+            try:
+                self.commit_ltp_delete(request, pk=pk, teacher_id=teacher)
+            except Http404:
+                pass
 
         return self.choices(request, pk=pk)
 
     @extend_schema(responses={200: serializers.SubjectAllotmentSetSerializer})
-    @action(detail=True, pagination_class=None)
+    @action(detail=True, pagination_class=None, filterset_class=None)
     def allotments(self, request, pk=None):
         """
         Returns the list of teachers that have been allotted to the current subject
@@ -119,7 +167,7 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
         request=serializers.CommitLTPSerializer,
         responses={200: serializers.SubjectAllotmentSetSerializer(many=True)}
     )
-    @action(detail=True, methods=["POST"], pagination_class=None)
+    @action(detail=True, methods=["POST"], pagination_class=None, filterset_class=None)
     def commit_ltp(self, request, pk=None):
         """
         modifies the allotment entries for the given subject
@@ -163,7 +211,8 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
         detail=True,
         methods=["DELETE"],
         url_path=r"commit_ltp/(?P<teacher_id>\w+)",
-        pagination_class=None
+        pagination_class=None,
+        filterset_class=None
     )
     def commit_ltp_delete(self, request, pk=None, teacher_id=None):
         allottment_instance = get_object_or_404(
@@ -174,6 +223,7 @@ class SubjectViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class TeacherViewSet(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = [JWTAuth]
     queryset = Teacher.objects.all()
     serializer_class = serializers.TeacherSerializer
     pagination_class = CustomPagination
@@ -207,6 +257,7 @@ class SearchViewSet(viewsets.ViewSet):
     """
     This viewset provides a search API for teachers and subjects models
     """
+    authentication_classes = [JWTAuth]
 
     def __search(self, model: Union[Teacher, Subject], query="", fields=[], limit=10):
         """
@@ -269,6 +320,42 @@ class SearchViewSet(viewsets.ViewSet):
         Searches over the fields: `name`, `email`
         """
         query = request.query_params.get("q", "")
-        data = self.__search(Teacher, query, ["name", "email"])
-        serializer = serializers.TeacherSerializer(data, many=True)
+        data = self.__search(Teacher, query, ["name", "email"], limit=None)
+        sorted_by_remaining = data.prefetch_related('allotment_set').order_by(
+            'allotment__allotted_lecture_hours',
+            'allotment__allotted_tutorial_hours',
+            'allotment__allotted_practical_hours',
+        )[:10]
+        serializer = serializers.TeacherSerializer(sorted_by_remaining, many=True)
         return Response(serializer.data)
+
+
+class FileResultsViewSet(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = [JWTAuth]
+    queryset = CeleryFileResults.objects.all()
+    serializer_class = serializers.CeleryFileResultsSerializer
+
+    @extend_schema(
+        responses={
+            (200, 'text/csv'): OpenApiTypes.BINARY,
+        },
+    )
+    @action(detail=True)
+    def download(self, request, pk=None):
+        """
+        returns the binary content of the file (assuming default of csv)
+        """
+        file: CeleryFileResults = self.get_object()
+
+        file.has_been_downloaded_yet = True
+        file.save()
+
+        response = Response(
+            headers={
+                "Content-Disposition": f"attachment; filename={file.filename}",
+                "Content-Type": "text/csv; charset=utf-8"
+            }
+        )
+        response.content = file.file
+
+        return response

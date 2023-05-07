@@ -7,7 +7,7 @@ from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
-from .models import Allotment, Choices, Subject, Teacher
+from .models import Allotment, CeleryFileResults, Choices, Subject, Teacher
 
 # TODO: add unit tests to make sure all properties are returned in the response
 
@@ -168,18 +168,19 @@ class CommitLTPSerializer(AllotmentSerializer):
 
         current_instance_hours = self.__get_current_instance_hours(subject, teacher)
 
-        total_hours = (
-            allotted_lecture_hours + allotted_practical_hours + allotted_tutorial_hours +
-            -sum(current_instance_hours.values())
-            # subtract current instance's hours from the total hours
-        )
-
-        # validate if hours are feasible by the teacher
-        if teacher.hours_left() < total_hours:
-            raise serializers.ValidationError(
-                "exceeded maximum weekly workload! "
-                f"Teacher workload is already at {teacher.current_load} hours!"
+        if settings.CUSTOM_SETTINGS['DISABLE__TEACHER_WORKLOAD_CHECK'] is False:
+            total_hours = (
+                allotted_lecture_hours + allotted_practical_hours +
+                allotted_tutorial_hours + -sum(current_instance_hours.values())
+                # subtract current instance's hours from the total hours
             )
+
+            # validate if hours are feasible by the teacher
+            if teacher.hours_left() < total_hours:
+                raise serializers.ValidationError(
+                    "exceeded maximum weekly workload! "
+                    f"Teacher workload is already at {teacher.current_load} hours!"
+                )
 
         # validate hours feasible by the subject
         # allotted L, T, P should be less than the subject's limits
@@ -203,8 +204,10 @@ class CommitLTPSerializer(AllotmentSerializer):
                 )
 
         # first teacher given Lecture should be given T, P hours too, if they exist
-        if allotted_lecture_hours != 0 and (
-            Allotment.objects.filter(subject=subject).count() == 0
+        if (
+            (settings.CUSTOM_SETTINGS["DISABLE__FIRST_LECTURER_CHECK"] is False) and
+            allotted_lecture_hours != 0 and
+            (Allotment.objects.filter(subject=subject).count() == 0)
         ):
             for key in keys[1:]:  # over tutorial and practical hours
                 allotted_key = "allotted" + key
@@ -269,3 +272,10 @@ class CommitLTPSerializer(AllotmentSerializer):
                 "Allotment for subject: \"%s\" & teacher: \"%s\"", len(instance_list),
                 self.validated_data["subject"], self.validated_data["teacher"]
             )
+
+
+class CeleryFileResultsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CeleryFileResults
+        exclude = ("file", )

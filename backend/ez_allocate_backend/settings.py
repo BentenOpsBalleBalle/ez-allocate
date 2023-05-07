@@ -26,11 +26,17 @@ SECRET_KEY = 'django-insecure-(%sp-nqnn$erii=ra&gx_uyiv)ornelvd+zynl0z2-r566^0+4
 DEBUG = True
 
 ALLOWED_HOSTS = []
+ALLOWED_HOSTS.extend(
+    i for i in getenv("ALLOWED_HOSTS", "").split(",") if i != ""
+)
 
 # CUSTOM SETTINGS
 CUSTOM_SETTINGS = {
     "MANUAL_CHOICE_NUMBER": 0,
-    "MAX_TEACHER_WORKLOAD_HOURS": 14
+    "MAX_TEACHER_WORKLOAD_HOURS": 14,
+    "DISABLE__TEACHER_WORKLOAD_CHECK": True,
+    "DISABLE__FIRST_LECTURER_CHECK": True,
+    "DISABLE_AUTH": getenv("DISABLE_AUTH", "false").lower() == "true",
 }
 
 # CORS SETTINGS
@@ -40,7 +46,15 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173"
 ]
-
+# yapf: enable
+CORS_ALLOWED_ORIGINS.extend(
+    i for i in getenv("CORS_ALLOWED_ORIGINS", "").split(",") if i != ""
+)
+CSRF_TRUSTED_ORIGINS = []
+CSRF_TRUSTED_ORIGINS.extend(
+    i for i in getenv("CORS_ALLOWED_ORIGINS", "").split(",") if i != ""
+)
+# yapf: disable
 # REST FRAMEWORK SETTINGS
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
@@ -52,7 +66,8 @@ SPECTACULAR_SETTINGS = {
     'ENUM_NAME_OVERRIDES': {
         'AssignedStatusEnum': 'common_models.models.AllotmentStatus',
         'AllotmentStatusEnum': 'common_models.models.AllotmentStatus',
-    }
+    },
+    'SCHEMA_PATH_PREFIX': r'/api/',
 }
 
 # LOGS: SETTINGS
@@ -68,17 +83,28 @@ LOGGING = {
     'loggers': {
         'common_models': {
             'handlers': ['console'],
+        },
+        'api': {
+            'handlers': ['console'],
         }
     },
     'formatters': {
         'verbose': {
             'format': '{levelname} - [{asctime}]:[{name}] {message}',
-            'datefmt': '%d/%M/%Y %H:%M:%S',
+            'datefmt': '%d/%b/%Y %H:%M:%S',
             'style': '{',
         }
     },
 
 }
+
+# Celery Configuration Options
+CELERY_TIMEZONE = "Asia/Kolkata"
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 5 * 60  # 5 minutes?
+CELERY_BROKER_URL = getenv("CELERY_BROKER_URL", None) or 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = getenv("CELERY_RESULT_BACKEND", None) or 'redis://localhost:6379/0'
+CELERY_RESULT_EXTENDED = True
 
 # Application definition
 
@@ -87,6 +113,7 @@ INSTALLED_APPS = [
     'api',
     'tasks',
     'rest_framework',
+    'django_filters',
     'corsheaders',
     'drf_spectacular',
     'django.contrib.admin',

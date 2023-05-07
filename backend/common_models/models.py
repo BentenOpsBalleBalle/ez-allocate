@@ -25,7 +25,7 @@ class AllotmentStatus(models.TextChoices):
     NONE = "NONE"
     PARTIAL = "PART", _('Partial')
     FULL = "FULL"
-    ERROR = "ERRR", _('Error')
+    ERROR = "OVER", _('Extra Full')
 
     @classmethod
     def compute_partial_or_full(
@@ -102,6 +102,14 @@ class Subject(models.Model):
 
     def __str__(self):
         return f"{self.course_code}: {self.name}"
+
+    def repr_csv(self):
+        credits_repr = (
+            f"{self.original_lecture_hours}-"
+            f"{self.original_tutorial_hours}-"
+            f"{self.original_practical_hours}"
+        )
+        return f"{self.name.title()} ({self.programme.capitalize()})({credits_repr})"
 
     @property
     def allotment_status(self) -> AllotmentStatus:
@@ -234,3 +242,23 @@ class Allotment(models.Model):
     def __str__(self):
         return f"teacher={self.teacher.name}, subject={self.subject.name}, lecture={self.allotted_lecture_hours}, " \
                f"tutorial={self.allotted_tutorial_hours}, practical={self.allotted_practical_hours}"
+
+    def get_allotment_total_hours(self):
+        return (
+            self.allotted_lecture_hours + self.allotted_tutorial_hours +
+            self.allotted_practical_hours
+        )
+
+
+class CeleryFileResults(models.Model):
+    id = models.UUIDField(primary_key=True, editable=False)
+    filename = models.SlugField(max_length=80)
+    file = models.BinaryField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    has_been_downloaded_yet = models.BooleanField(default=False)
+
+    def __str__(self) -> str:
+        return (
+            f"file_id={self.id}, filename={self.filename}, created_at={self.created_at}, "
+            f"downloaded={self.has_been_downloaded_yet}"
+        )
