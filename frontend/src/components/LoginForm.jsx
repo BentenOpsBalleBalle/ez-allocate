@@ -20,6 +20,7 @@ function LoginForm() {
             service: "auth",
         });
         request.setToken(res.data.token);
+        localStorage.setItem("token", res.data.token);
         navigate("/subjects");
     };
 

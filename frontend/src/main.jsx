@@ -11,6 +11,11 @@ const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
             staleTime: 1000 * 60 * 5,
+            onError: (error) => {
+                console.log(error, "error aaya bhaya");
+                localStorage.removeItem("token");
+                window.location.assign("/auth-error");
+            },
         },
     },
 });

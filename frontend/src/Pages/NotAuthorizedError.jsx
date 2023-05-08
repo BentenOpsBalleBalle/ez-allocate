@@ -1,7 +1,7 @@
 import { Button, Result } from "antd";
 import { useNavigate } from "react-router-dom";
 
-const NotFoundError = () => {
+const NotAuthorizedError = () => {
     const navigate = useNavigate();
     return (
         <div className="mt-28">
@@ -11,7 +11,7 @@ const NotFoundError = () => {
                 subTitle="Sorry, you are not authorized to access this page."
                 extra={
                     <Button
-                        onClick={() => navigate("/login")}
+                        onClick={() => navigate("/")}
                         type="primary"
                         style={{ backgroundColor: "#1677ff" }}
                     >
@@ -23,4 +23,4 @@ const NotFoundError = () => {
     );
 };
 
-export default NotFoundError;
+export default NotAuthorizedError;
