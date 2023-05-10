@@ -46,6 +46,9 @@ app.get("/teachers/:id", (req, res) => {
     const teacher = teacher_allotment.find((teacher) => teacher.id === id);
     res.send(teacher);
 });
+app.get("/auth/hehe", (req, res) => {
+    res.send({ message: "hehe" });
+});
 
 function verify(req, res, next) {
     let token = req.headers["authorization"].split(" ")[1];
