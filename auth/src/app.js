@@ -13,10 +13,14 @@ const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.options("*", cors());
+// app.options("*", cors());
 // app.use(expressJwt({ secret: process.env.PRIVATE_KEY, algorithms: ['RS256'] }).unless({ path: ['/auth/signin'] }))
 
-app.use(cors());
+app.use(
+    cors({
+        origin: "https://ez-allocate.vercel.app/",
+    })
+);
 
 app.use("/auth", userRouter);
 app.use("/protected", verify, (req, res) => {
