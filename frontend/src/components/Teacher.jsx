@@ -61,9 +61,9 @@ const Teacher = () => {
     return teacherQuery.isLoading ? (
         <div>loading...</div>
     ) : (
-        <>
+        <div className="w-screen h-screen">
             <BreadCrumbComp />
-            <div className="flex w-screen h-screen items-center justify-around  ">
+            <div className="flex w-[95vw] h-[95vh] items-center justify-around  ">
                 <div className="card relative w-[55%] h-[86%] overflow-y-auto  rounded-md m-10 p-5 shadow-[0_9px_17px_-6px_rgba(0,0,0,0.2)]">
                     <div className="text-center  text-[30px] pt-10 font-bold">
                         {teacherQuery.data?.data?.name}
@@ -127,7 +127,7 @@ const Teacher = () => {
                 />
             </div> */}
             </div>
-        </>
+        </div>
     );
 };
 
