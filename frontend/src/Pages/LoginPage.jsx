@@ -1,8 +1,15 @@
 import LoginForm from "../components/LoginForm";
-
+import { FaGithubSquare } from "react-icons/fa";
 function LoginPage() {
     return (
-        <div className="flex">
+        <div className="flex relative">
+            <a
+                href="https://github.com/BentenOpsBalleBalle/ez-allocate"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                <FaGithubSquare className="github-icon absolute right-[14px] top-[10px] text-[42px] z-10 cursor-pointer hover:animate-wiggle " />
+            </a>
             <div className="bg-[#f4f1ea] h-screen relative w-1/2 ">
                 <div className="absolute top-8 font-bold text-4xl left-12 font-serif">
                     <span className="text-blue-800 font-bold text-4xl ">
